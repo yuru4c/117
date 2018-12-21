@@ -1,0 +1,298 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html lang="ja-JP">
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<meta name="format-detection" content="date=no">
+	
+	<title>オンライン 117 ver. 20181116</title>
+	
+	<link rel="stylesheet" href="style.css">
+</head>
+<body>
+	
+	<!-- メイン画面 -->
+	
+	<div id="main">
+		<p id="title">―</p>
+		<p>
+			<span>
+				<span id="h12">
+					<span class="am">午前</span>
+					<span class="pm">午後</span>
+				</span>
+				<span><tt>-</tt> <span>時</span></span>
+			</span>
+			<span>
+				<span><tt>-</tt> <span>分</span></span>
+			</span>
+			<span>
+				<span><tt>-</tt> <span>秒</span></span>
+			</span>
+			<span class="ms">
+				<span><span>.</span><tt>-</tt></span>
+			</span>
+		</p>
+	</div>
+	
+	<!-- 設定画面 -->
+	
+	<div id="pref">
+		<div class="content">
+			<label>時刻補正: </label>
+			<input type="button" value="再取得" id="refetch">
+			<span id="diff">0<!> ms</span>
+			<span id="last">(<!>未取得<!>)</span>
+			<ol id="log"><li></li></ol>
+		</div>
+		<div class="voice">
+			<label>
+				声:
+				<select id="voice"></select>
+			</label>
+			<br>
+			<label for="pitch-r">
+				音程:
+				<input size="4" id="pitch">
+				<input type="range" step="0.1" min="0" max="2" id="pitch-r">
+			</label>
+			<label for="rate-r">
+				速度:
+				<input size="4" id="rate">
+				<input type="range" step="0.1" min="0.1" max="10" id="rate-r">
+			</label>
+		</div>
+		<div class="container">
+			<div>
+				<fieldset>
+					<legend>発振音</legend>
+					<label>
+						<input type="checkbox" id="s">
+						発振音なし(<kbd>S</kbd>)
+					</label>
+					<div class="right">
+						<label>
+							間隔(<kbd>D</kbd>):
+							<select id="d">
+								<option value="10">10秒</option>
+								<option value="15">15秒</option>
+								<option value="20">20秒</option>
+								<option value="30">30秒</option>
+								<option value="60">1分</option>
+								<option value="120">2分</option>
+								<option value="180">3分</option>
+								<option value="300">5分</option>
+								<option value="600">10分</option>
+								<option value="900">15分</option>
+								<option value="1200">20分</option>
+								<option value="1800">30分</option>
+								<option value="3600">1時間</option>
+								<option value="7200">2時間</option>
+								<option value="10800">3時間</option>
+								<option value="14400">4時間</option>
+								<option value="21600">6時間</option>
+								<option value="28800">8時間</option>
+								<option value="43200">12時間</option>
+								<option value="86400">24時間</option>
+							</select>
+						</label>
+						<label>
+							周波数(<kbd>F</kbd>):
+							<select id="f">
+								<option value="0">A [440/880/880Hz]</option>
+								<option value="1">G [400/800/1600Hz]</option>
+								<option value="2">B [500/1000/2000Hz]</option>
+							</select>
+						</label>
+					</div>
+					<label>
+						<input type="checkbox" id="t">
+						秒刻みの音を演奏しない(<kbd>T</kbd>)
+					</label>
+					<label>
+						<input type="checkbox" id="m">
+						秒刻みの音を多重演奏する(<kbd>M</kbd>)
+					</label>
+					<label>
+						<input type="checkbox" id="y">
+						予告音(30秒毎低音)を演奏しない(<kbd>Y</kbd>)
+					</label>
+					<div class="right">
+						<label>
+							予告音の回数(<kbd>A</kbd>):
+							<select class="small" id="a">
+								<option value="3">3回</option>
+								<option value="2">2回</option>
+								<option value="1">1回</option>
+							</select>
+						</label>
+					</div>
+				</fieldset>
+				<fieldset>
+					<legend>休止</legend>
+					<label>
+						<input type="checkbox" id="k">
+						次の時間帯に、時報を休止する(<kbd>K</kbd>)
+					</label>
+					<div class="right">
+						<div>
+							<select class="small" id="k1">
+								<option value="0">0時1分</option>
+								<option value="1">1時1分</option>
+								<option value="2">2時1分</option>
+								<option value="3">3時1分</option>
+								<option value="4">4時1分</option>
+								<option value="5">5時1分</option>
+								<option value="6">6時1分</option>
+								<option value="7">7時1分</option>
+								<option value="8">8時1分</option>
+								<option value="9">9時1分</option>
+								<option value="10">10時1分</option>
+								<option value="11">11時1分</option>
+								<option value="12">12時1分</option>
+								<option value="13">13時1分</option>
+								<option value="14">14時1分</option>
+								<option value="15">15時1分</option>
+								<option value="16">16時1分</option>
+								<option value="17">17時1分</option>
+								<option value="18">18時1分</option>
+								<option value="19">19時1分</option>
+								<option value="20">20時1分</option>
+								<option value="21">21時1分</option>
+								<option value="22">22時1分</option>
+								<option value="23">23時1分</option>
+							</select>
+							から
+							<select class="small" id="k2">
+								<option value="0">0時59分</option>
+								<option value="1">1時59分</option>
+								<option value="2">2時59分</option>
+								<option value="3">3時59分</option>
+								<option value="4">4時59分</option>
+								<option value="5">5時59分</option>
+								<option value="6">6時59分</option>
+								<option value="7">7時59分</option>
+								<option value="8">8時59分</option>
+								<option value="9">9時59分</option>
+								<option value="10">10時59分</option>
+								<option value="11">11時59分</option>
+								<option value="12">12時59分</option>
+								<option value="13">13時59分</option>
+								<option value="14">14時59分</option>
+								<option value="15">15時59分</option>
+								<option value="16">16時59分</option>
+								<option value="17">17時59分</option>
+								<option value="18">18時59分</option>
+								<option value="19">19時59分</option>
+								<option value="20">20時59分</option>
+								<option value="21">21時59分</option>
+								<option value="22">22時59分</option>
+								<option value="23">23時59分</option>
+							</select>
+						</div>
+					</div>
+					<div class="holidays">
+						<span>定休日(<kbd>H</kbd>): </span>
+						<label><input type="checkbox" id="h0">日</label>
+						<label><input type="checkbox" id="h1">月</label>
+						<label><input type="checkbox" id="h2">火</label>
+						<label><input type="checkbox" id="h3">水</label>
+						<label><input type="checkbox" id="h4">木</label>
+						<label><input type="checkbox" id="h5">金</label>
+						<label><input type="checkbox" id="h6">土</label>
+					</div>
+				</fieldset>
+			</div>
+			<div>
+				<fieldset>
+					<legend>アナウンス</legend>
+					<label>
+						<input type="checkbox" id="v">
+						アナウンスなし(<kbd>V</kbd>)
+					</label>
+					<div class="right">
+						<label>
+							間隔(<kbd>I</kbd>):
+							<select id="i">
+								<option value="10">10秒</option>
+								<option value="20">20秒</option>
+								<option value="30">30秒</option>
+								<option value="60">1分</option>
+								<option value="120">2分</option>
+								<option value="180">3分</option>
+								<option value="300">5分</option>
+								<option value="600">10分</option>
+								<option value="900">15分</option>
+								<option value="1200">20分</option>
+								<option value="1800">30分</option>
+								<option value="3600">1時間</option>
+								<option value="7200">2時間</option>
+								<option value="10800">3時間</option>
+								<option value="14400">4時間</option>
+								<option value="21600">6時間</option>
+								<option value="28800">8時間</option>
+								<option value="43200">12時間</option>
+								<option value="86400">24時間</option>
+							</select>
+						</label>
+						<label>
+							時刻前(<kbd>N</kbd>):
+							<select id="n">
+								<option value="0">～をお伝えします</option>
+								<option value="1">～をお知らせします</option>
+								<option value="2">まもなく～です</option>
+								<option value="3">～に、なります</option>
+								<option value="4">&lt;なし&gt;</option>
+							</select>
+						</label>
+						<label>
+							時刻後(<kbd>P</kbd>):
+							<select id="p">
+								<option value="0">&lt;なし&gt;</option>
+								<option value="1">～をお伝えしました</option>
+								<option value="2">～をお知らせしました</option>
+								<option value="3">～です</option>
+								<option value="4">～に、なりました</option>
+							</select>
+						</label>
+					</div>
+					<label>
+						<input type="checkbox" id="j">
+						「ちょうど」を発音しない(<kbd>J</kbd>)
+					</label>
+					<label>
+						<input type="checkbox" id="z">
+						0分+数十秒時に「0分」を発音しない(<kbd>Z</kbd>)
+					</label>
+					<label>
+						<input type="checkbox" id="x">
+						アナウンス中に発振音を止める(<kbd>X</kbd>)
+					</label>
+					<label>
+						<input type="checkbox" id="l">
+						24時間制(<kbd>L</kbd>)
+					</label>
+					<label>
+						<input type="checkbox" id="g">
+						「午前」「午後」を発音しない(<kbd>G</kbd>)
+					</label>
+					<label>
+						<input type="checkbox" id="r">
+						正午「午後0時」を「午後12時」とする(<kbd>R</kbd>)
+					</label>
+					<label>
+						<input type="checkbox" id="c">
+						毎正時に、月日を読み上げる(<kbd>C</kbd>)
+					</label>
+					<label>
+						<input type="checkbox" id="w">
+						毎正時に、曜日を読み上げる(<kbd>W</kbd>)
+					</label>
+				</fieldset>
+			</div>
+		</div>
+	</div>
+	
+	<script type="text/javascript" src="script.js"></script>
+</body>
+</html>

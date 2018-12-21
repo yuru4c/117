@@ -1,0 +1,124 @@
+
+/* 共通 */
+
+body {
+	-webkit-text-size-adjust: none;
+	   -moz-text-size-adjust: none;
+	    -ms-text-size-adjust: none;
+}
+
+#main span, #pref .content span {
+	display: inline-block;
+}
+
+/* メイン画面 */
+
+#main {
+	text-align: center;
+}
+#title {
+	word-break: keep-all;
+	font-size: 2em;
+}
+#main span span span {
+	font-size: 2em;
+}
+#main tt {
+	font-size: 4em;
+}
+
+#h12.am .pm, #h12.pm .am {
+	display: none;
+}
+#main .ms tt {
+	font-size: 3em;
+}
+
+/* 設定画面 */
+
+#pref {
+	display: table;
+	margin: 4em auto;
+	font-size: smaller;
+}
+#pref input, #pref select {
+	font-size: 1em;
+}
+#pref .content {
+	white-space: nowrap;
+}
+#diff, #log {
+	font-family: monospace, sans-serif;
+}
+
+.voice {
+	line-height: 2.5;
+}
+.voice label {
+	display: inline-block;
+}
+.voice input {
+	text-align: right;
+}
+.voice input[type="range"] {
+	width: 12em;
+	vertical-align: middle;
+}
+
+.container {
+	margin-top: 0.625em;
+	overflow: hidden;
+}
+.container > div {
+	float: left;
+}
+.container > div:first-child {
+	margin-right: 0.75em;
+}
+.container fieldset {
+	margin-top: 0.625em;
+}
+
+.container fieldset > label,
+.container fieldset > div {
+	line-height: 1.5;
+}
+
+.container label {
+	display: block;
+}
+.disabled {
+	color: gray;
+}
+.container kbd {
+	font: inherit;
+}
+.alt kbd {
+	text-decoration: underline;
+}
+
+.container select {
+	min-width: 14em;
+}
+.container select.small {
+	min-width: 7em;
+}
+
+.right {
+	line-height: 2 !important;
+	text-align: right;
+}
+.holidays {
+	margin-top: 0.5em;
+}
+.holidays span {
+	float: left;
+	white-space: pre;
+}
+.holidays label {
+	display: inline-block;
+	text-align: center;
+}
+.holidays input {
+	display: block;
+}
