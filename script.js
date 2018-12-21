@@ -632,7 +632,7 @@ var jsont; // JSONPコールバック関数公開用
 	
 	for (i = 0; i < length; i++) {
 		var id = ids[i];
-		servers[i] = 'http://' + id + '/cgi-bin/jsont?';
+		servers[i] = 'https://' + id + '/cgi-bin/jsont?';
 		
 		var li = $.createElement('li');
 		li.appendChild($.createTextNode(id + ': '));
