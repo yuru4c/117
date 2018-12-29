@@ -653,7 +653,7 @@ var jsont; // JSONPコールバック関数公開用
 		var h = date.getHours();
 		hrs.data = config.l || config.r && h == 12 ||
 			h < 12 ? h : h - 12;
-		h12.className = config.l ? 'am pm' : h < 12 ? 'am' : 'pm';
+		h12.className = config.l ? 'h24' : h < 12 ? 'am' : 'pm';
 		
 		titleText.data =
 			date.getFullYear()    + '年' +

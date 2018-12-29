@@ -27,6 +27,7 @@ body {
 	font-size: 4em;
 }
 
+#h12.h24,
 #h12.am .pm, #h12.pm .am {
 	display: none;
 }
