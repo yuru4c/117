@@ -487,23 +487,22 @@ var jsont; // JSONPコールバック関数公開用
 	// 補正された現在時刻を取得
 	function getNow() {
 		var now = new Date() - diff;
-		if (stepped) {
-			if (now >= leap) {
-				step = 0;
-				stepped = false;
-			}
-		} else if (step) {
-			var ins = step > 0;
-			if (now - leap >= (ins ? 0 : step)) {
+		if (!stepped && step) {
+			var del = step < 0;
+			if (now - leap >= (del ? step : 0)) {
 				diff += step;
+				now  -= step;
 				result();
-				if (ins) {
-					stepped = true;
-				} else {
+				if (del) {
 					step = 0;
+				} else {
+					stepped = true;
 				}
-				return now - step;
 			}
+		}
+		if (stepped && now >= leap) {
+			step = 0;
+			stepped = false;
 		}
 		return now;
 	}
