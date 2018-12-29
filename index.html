@@ -5,9 +5,9 @@
 	<meta name="viewport" content="width=device-width, initial-scale=1">
 	<meta name="format-detection" content="date=no">
 	
-	<title>オンライン 117 ver. 20181116</title>
+	<title>オンライン 117 ver. 20181229</title>
 	
-	<link rel="stylesheet" href="style.css">
+	<link rel="stylesheet" href="style.css?20181229">
 </head>
 <body>
 	
@@ -51,15 +51,15 @@
 				<select id="voice"></select>
 			</label>
 			<br>
-			<label for="pitch-r">
+			<label for="pitch">
 				音程:
-				<input size="4" id="pitch">
-				<input type="range" step="0.1" min="0" max="2" id="pitch-r">
+				<input size="4" id="pitch-t">
+				<input type="range" step="0.1" min="0" max="2" id="pitch">
 			</label>
-			<label for="rate-r">
+			<label for="rate">
 				速度:
-				<input size="4" id="rate">
-				<input type="range" step="0.1" min="0.1" max="10" id="rate-r">
+				<input size="4" id="rate-t">
+				<input type="range" step="0.1" min="0.1" max="10" id="rate">
 			</label>
 		</div>
 		<div class="container">
@@ -291,8 +291,11 @@
 				</fieldset>
 			</div>
 		</div>
+		<div class="save">
+			<input type="button" value="設定を保存" id="save">
+		</div>
 	</div>
 	
-	<script type="text/javascript" src="script.js"></script>
+	<script type="text/javascript" src="script.js?20181229"></script>
 </body>
 </html>

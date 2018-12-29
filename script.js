@@ -5,9 +5,29 @@ var jsont; // JSONPコールバック関数公開用
 	
 	var String = this.String;
 	var Date   = this.Date;
-	var isNaN = this.isNaN;
 	
-	var AudioContext = this.AudioContext || this.webkitAudioContext;
+	var isNaN = this.isNaN;
+	var parseInt   = this.parseInt;
+	var parseFloat = this.parseFloat;
+	
+	var decode = this.decodeURIComponent;
+	
+	var webkit = 'webkit', moz = 'moz';
+	function prefix(object, key, vendors) {
+		if (!(key in object)) {
+			var uc = key.charAt(0).toUpperCase() + key.substr(1);
+			var l = vendors.length;
+			for (var i = 0; i < l; i++) {
+				var prefixed = vendors[i] + uc;
+				if (prefixed in object) {
+					return prefixed;
+				}
+			}
+		}
+		return key;
+	}
+	
+	var AudioContext = this[prefix(this, 'AudioContext', [webkit])];
 	var Utterance = this.SpeechSynthesisUtterance;
 	
 	// 設定
@@ -27,6 +47,10 @@ var jsont; // JSONPコールバック関数公開用
 	var days = ['日', '月', '火', '水', '木', '金', '土'];
 	
 	var inputTag = 'INPUT', selectTag = 'SELECT';
+	var location = window.location;
+	
+	var hidden = prefix($, 'hidden', [webkit, moz]);
+	var visibilitychange = hidden.slice(0, -6) + 'visibilitychange';
 	
 	var context; var destination;
 	var speechSynthesis = window.speechSynthesis;
@@ -40,6 +64,7 @@ var jsont; // JSONPコールバック関数公開用
 	var logTexts = [];      // 時刻補正ログ TextNode[]
 	
 	var select;
+	var voiceURI;
 	var params = {pitch: 1, rate: 1};
 	
 	// 文字列
@@ -51,6 +76,9 @@ var jsont; // JSONPコールバック関数公開用
 	}
 	
 	// 表示更新
+	function result() {
+		diffText.data = dstr(diff);
+	}
 	function log(i, str) {
 		logTexts[i].data = str;
 	}
@@ -68,15 +96,22 @@ var jsont; // JSONPコールバック関数公開用
 			var v = vs[i];
 			if (!v.lang || langRe.test(v.lang)) {
 				var l = voices.push(v);
-				var def = v['default'];
+				var name = v.name;
+				var uri  = v.voiceURI;
+				var def  = v['default'];
 				
 				var option = $.createElement('option');
 				option.appendChild($.createTextNode(
-					def ? v.name + ' （既定値）' : v.name));
+					def ? name + ' （既定値）' : name));
 				select.add(option);
 				
+				if (uri == voiceURI) {
+					restore = true;
+					sel = l;
+					voiceURI = null;
+				}
 				if (restore) continue;
-				restore = voice && v.voiceURI == voice.voiceURI;
+				restore = voice && uri == voice.voiceURI;
 				if (restore || !sel && def) {
 					sel = l;
 				}
@@ -97,8 +132,8 @@ var jsont; // JSONPコールバック関数公開用
 	}
 	function bind(id) {
 		var param = params[id];
-		var input = $.getElementById(id);
-		var range = $.getElementById(id + '-r');
+		var input = $.getElementById(id + '-t');
+		var range = $.getElementById(id);
 		input.value = input.placeholder = toFixed(param);
 		range.value = range.defaultValue = param;
 		
@@ -126,21 +161,31 @@ var jsont; // JSONPコールバック関数公開用
 	}
 	
 	var config = {
-		s: true, d: 10, f: 2,
-		t: false, m: true,
+		s: true, d: 10, f: 0,
+		t: false, m: false,
 		y: false, a: 3,
 		
 		k: false, k1: 21, k2: 6,
 		h0: false, h1: false, h2: false, h3: false,
 		h4: false, h5: false, h6: false,
 		
-		v: true, i: 10, n: 1, p: 0,
-		j: false, z: true,
+		v: true, i: 10, n: 0, p: 0,
+		j: false, z: false,
 		x: false,
 		l: false, g: false, r: false,
-		c: false, w: false
+		c: false, w: false,
+		
+		_: false
 	};
 	var inputs = {};
+	
+	var xids = [
+		's', 'v', 't', 'm', 'y',
+		'j', 'l', 'x', 'c', '_', 'w', 'z', 'g', 'r'
+	];
+	var wids = ['h0', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6'];
+	
+	var c0 = '0', c1 = '1';
 	
 	function alt(altKey) {
 		pref.className = altKey ? 'alt' : '';
@@ -176,32 +221,32 @@ var jsont; // JSONPコールバック関数公開用
 		alt((event || window.event).altKey);
 	}
 	
-	function disable(id, disabled) {
+	function d(id, disabled) {
 		var input = inputs[id];
 		input.disabled = disabled;
 		input.parentNode.className = disabled ? 'disabled' : '';
 	}
 	function onchange() {
-		disable('d', config.s);
-		disable('f', config.s);
-		disable('t', config.s);
-		disable('m', config.s || config.t);
-		disable('y', config.s);
-		disable('a', config.s || config.y);
+		d('d', config.s);
+		d('f', config.s);
+		d('t', config.s);
+		d('m', config.s || config.t);
+		d('y', config.s);
+		d('a', config.s || config.y);
 		
-		disable('k1', !config.k);
-		disable('k2', !config.k);
+		d('k1', !config.k);
+		d('k2', !config.k);
 		
-		disable('i', config.v);
-		disable('n', config.v);
-		disable('p', config.v || config.i == 10 && config.n != 4);
-		disable('j', config.v || config.i >= 3600);
-		disable('z', config.v || config.i >=   60);
-		disable('x', config.v);
-		disable('g', config.v || config.l);
-		disable('r', config.l);
-		disable('c', config.v);
-		disable('w', config.v);
+		d('i', config.v);
+		d('n', config.v);
+		d('p', config.v || config.i == 10 && config.n != 4);
+		d('j', config.v || config.i >= 3600);
+		d('z', config.v || config.i >=   60);
+		d('x', config.v);
+		d('g', config.v || config.l);
+		d('r', config.l);
+		d('c', config.v);
+		d('w', config.v);
 		
 		force = true;
 	}
@@ -220,7 +265,7 @@ var jsont; // JSONPコールバック関数公開用
 			try {
 				switch (this.id) {
 					case 's':
-					if (context == null) {
+					if (!context) {
 						context = new AudioContext();
 						destination = context.destination;
 					}
@@ -239,30 +284,188 @@ var jsont; // JSONPコールバック関数公開用
 		oncheck.call(this);
 	}
 	
-	function getInput(id) {
+	function input(id) {
 		var input = $.getElementById(id);
-		switch (input.tagName) {
-			case inputTag:
-			switch (input.type) {
-				case 'checkbox':
-				input.checked = config[id];
-				input.onchange = id == 's' || id == 'v' ?
-					activate : oncheck;
+		if (input) {
+			switch (input.tagName) {
+				case inputTag:
+				switch (input.type) {
+					case 'checkbox':
+					input.checked = config[id];
+					input.onchange = id == 's' || id == 'v' ?
+						activate : oncheck;
+					break;
+				}
+				break;
+				
+				case selectTag:
+				input.value = config[id];
+				input.onchange = onselect;
 				break;
 			}
+			inputs[id] = input;
+		}
+	}
+	
+	var rs = /\s/, rb = /\\\\/g, rq = /\\"/g, re = /\\(?=\s|")/g;
+	function parse(str) {
+		var args = []; var i = 0;
+		for (var c; c = str.charAt(i); i++) {
+			if (rs.test(c)) continue;
+			var v = ''; var b = i;
+			do {
+				if (c == '\\') { i++; continue; }
+				if (rs.test(c)) break;
+				if (c != '"') continue;
+				v += str.substring(b, i).replace(re, '');
+				b = ++i;
+				for (var d; d = str.charAt(i); i++) {
+					if (d == '\\') { i++; continue; }
+					if (d == c) break;
+				}
+				v += str.substring(b, i).replace(rq, c);
+				b = i + 1;
+			} while (c = str.charAt(++i));
+			v += str.substring(b, i).replace(re, '');
+			args.push(v.replace(rb, '\\'));
+		}
+		return args;
+	}
+	
+	var escb = /\\/g, escq = /"/g;
+	function quote(str) {
+		return '"' + str
+			.replace(escb, '\\\\')
+			.replace(escq, '\\"') + '"';
+	}
+	
+	function sets(ids, arg) {
+		var l = ids.length;
+		for (var i = 0; i < l; i++) {
+			if (arg.charAt(i) == c1) {
+				config[ids[i]] = true;
+			}
+		}
+	}
+	function set(id, arg) {
+		var i = parseInt(arg, 10);
+		config[id] = isNaN(i) ? 0 : i;
+	}
+	
+	function intOf(str, defaultValue) {
+		var value = parseInt(str, 10);
+		return isNaN(value) ? defaultValue : value;
+	}
+	
+	function custom(arg) {
+		var index = arg.indexOf('=');
+		var key   = arg.substring(0, index);
+		var value = arg.substr(index + 1);
+		switch (key) {
+			case 'voice':
+			voiceURI = value;
 			break;
 			
-			case selectTag:
-			input.value = config[id]; // TODO: 指定以上の最小値を選択
-			input.onchange = onselect;
+			case 'pitch': case 'rate':
+			var f = parseFloat(value);
+			if (isNaN(f)) break;
+			params[key] = f;
 			break;
 		}
-		return input;
+	}
+	
+	function load() {
+		var hash = location.hash;
+		if (hash) {
+			var argv = parse(decode(hash.substr(1)));
+			var argc = argv.length;
+			for (var i = 0; i < argc; i++) {
+				var arg = argv[i];
+				if (arg.charAt(0) != '-') continue;
+				var c = arg.charAt(1);
+				var v = arg.substr(2);
+				switch (c) {
+					case 'x': sets(xids, v); break;
+					case 'w': sets(wids, v); break;
+					
+					case 'f': case 'a': case 'n': case 'p':
+					set(c, v);
+					break;
+					
+					case 's': set('d', v); break;
+					case 'v': set('i', v); break;
+					
+					case 'q':
+					var vs = v.split('-');
+					config.k1 = intOf(vs[0], 0);
+					config.k2 = intOf(vs[1], config.k1);
+					config.k = true;
+					break;
+					
+					case '-': custom(v); break;
+				}
+			}
+		} else {
+			config.f = 2;
+			config.m = true;
+			config.n = 1;
+			config.z = true;
+		}
+	}
+	
+	function gets(ids, flag) {
+		var flags = '';
+		var l = ids.length;
+		for (var i = 0; i < l; i++) {
+			if (config[ids[i]]) {
+				flag = true;
+				flags += c1;
+			} else {
+				flags += c0;
+			}
+		}
+		return flag ? flags : null;
+	}
+	function save() {
+		var hash = '-x' + gets(xids, true);
+		var w = gets(wids, false);
+		if (w) {
+			hash += ' -w' + w;
+		}
+		
+		hash += ' -f' + config.f;
+		if (config.a != 3) {
+			hash += ' -a' + config.a;
+		}
+		
+		hash += ' -n' + config.n;
+		hash += ' -p' + config.p;
+		
+		hash += ' -s' + config.d;
+		hash += ' -v' + config.i;
+		
+		if (config.k) {
+			hash += ' -q' + config.k1 + '-' + config.k2;
+		}
+		
+		if (params.pitch != 1) {
+			hash += ' --pitch=' + params.pitch;
+		}
+		if (params.rate != 1) {
+			hash += ' --rate='  + params.rate;
+		}
+		if (voice) {
+			hash += ' --voice=' + quote(voice.voiceURI);
+		}
+		
+		location.hash = hash;
 	}
 	
 	// 時刻補正 JSONP (http://www.nict.go.jp/JST/http.html)
 	
 	var diff = 0; // クライアント時刻 - サーバ時刻 (ミリ秒)
+	
+	var leap, step; var stepped;
 	
 	var ids = [
 		'ntp-a1.nict.go.jp',
@@ -283,7 +486,26 @@ var jsont; // JSONPコールバック関数公開用
 	
 	// 補正された現在時刻を取得
 	function getNow() {
-		return new Date() - diff;
+		var now = new Date() - diff;
+		if (stepped) {
+			if (now >= leap) {
+				step = 0;
+				stepped = false;
+			}
+		} else if (step) {
+			var ins = step > 0;
+			if (now - leap >= (ins ? 0 : step)) {
+				diff += step;
+				result();
+				if (ins) {
+					stepped = true;
+				} else {
+					step = 0;
+				}
+				return now - step;
+			}
+		}
+		return now;
 	}
 	
 	function half(n) { // n/2を0側へ丸める
@@ -314,6 +536,10 @@ var jsont; // JSONPコールバック関数公開用
 			if (u < minU) minU = u;
 		}
 		diff = half(maxL + minU);
+		
+		leap = json.next * 1000;
+		step = leap < serverTime ? 0 : json.step * 1000;
+		stepped = false;
 		
 		// ログ書き換え
 		log(i, rstr(half(l + u), u - l) + ' ⇒ ' +
@@ -352,7 +578,7 @@ var jsont; // JSONPコールバック関数公開用
 		} else { // 完了
 			// 表示更新
 			if (!first) {
-				diffText.data = dstr(diff);
+				result();
 				date.setTime(getNow());
 				lastText.data = date.toLocaleString();
 			}
@@ -369,7 +595,7 @@ var jsont; // JSONPコールバック関数公開用
 		
 		// 表示更新
 		refetch.disable = true;
-		for (var j = 0; j < length; j++) {
+		for (var j = 1; j < length; j++) {
 			log(j, '保留');
 		}
 		
@@ -386,11 +612,15 @@ var jsont; // JSONPコールバック関数公開用
 	var titleText, hrs, mins, secs, ms; // TextNodes
 	
 	var pm, ps; // 前の値 (上位含む)
-	var force = false;
+	var pstep, force = false;
 	
-	function write(textNode, value, unit) { // 書き換え
+	var refreshing;
+	
+	function write(textNode, value, unit, add) { // 書き換え
 		var num = value % unit; // 表示する値
-		
+		if (add) {
+			num += unit;
+		}
 		// ゼロ埋め
 		var padding = '';
 		for (var d = 10; d < unit; d *= 10) {
@@ -404,12 +634,15 @@ var jsont; // JSONPコールバック関数公開用
 	// 表示を更新
 	function refresh() {
 		var now = getNow();    // 現在時刻
+		if (stepped) {
+			now += step;
+		}
 		
 		// 変化する単位まで更新
 		var rem = write(ms, now, 1000);
-		if (rem == ps && !force) return;
+		if (rem == ps && !force && stepped == pstep) return;
 		
-		rem = write(secs, ps = rem, 60);
+		rem = write(secs, ps = rem, 60, pstep = stepped);
 		if (rem == pm && !force) return;
 		
 		pm = rem;
@@ -430,12 +663,25 @@ var jsont; // JSONPコールバック関数公開用
 			days[date.getDay()]   + '曜日';
 	}
 	
+	function onvisibilitychange() {
+		if (this[hidden]) {
+			if (refreshing != null) {
+				window.clearInterval(refreshing);
+				refreshing = null;
+			}
+		} else {
+			if (refreshing == null) {
+				refreshing = window.setInterval(refresh, interval);
+			}
+		}
+	}
+	
 	
 	var ticked = new Date(0);
 	
 	// 発振音
 	
-	var tGain = 0.5;
+	var gain = 0.5;
 	
 	function Tone(frequency, duration, ramp) {
 		this.frequency = frequency;
@@ -462,12 +708,12 @@ var jsont; // JSONPコールバック関数公開用
 	function play(time, tone) {
 		var end = time + tone.duration;
 		var node = context.createGain();
-		var gain = node.gain;
+		var param = node.gain;
 		var oscillator = context.createOscillator();
 		
-		gain.value = tGain;
-		gain.setValueAtTime(tGain, time + tone.ramp);
-		gain.linearRampToValueAtTime(0, end);
+		param.value = gain;
+		param.setValueAtTime(gain, time + tone.ramp);
+		param.linearRampToValueAtTime(0, end);
 		node.connect(destination);
 		
 		oscillator.frequency.value = tone.frequency;
@@ -483,15 +729,17 @@ var jsont; // JSONPコールバック関数公開用
 		var quiet = true;
 		var time = context.currentTime;
 		
-		if (secs % config.d == 0) {
+		if (secs % config.d) {
+			if (!config.y) {
+				var d30 = 30 - secs % 30;
+				if (!(d30 > config.a || (secs + d30) % config.d)) {
+					play(time, tone[0]);
+					quiet = false;
+				}
+			}
+		} else {
 			play(time, tone[1]);
 			quiet = false;
-		} else if (!config.y) {
-			var d30 = 30 - secs % 30;
-			if (d30 <= config.a && (secs + d30) % config.d == 0) {
-				play(time, tone[0]);
-				quiet = false;
-			}
 		}
 		if (!config.t && (quiet || config.m)) {
 			play(time, tone[2]);
@@ -598,8 +846,10 @@ var jsont; // JSONPコールバック関数公開用
 	
 	// 再生
 	
+	var ttime, tstep;
+	
 	function test() {
-		if (config['h' + ticked.getDay()]) {
+		if (config[wids[ticked.getDay()]]) {
 			return false;
 		}
 		if (config.k) {
@@ -611,10 +861,28 @@ var jsont; // JSONPコールバック関数公開用
 		return true;
 	}
 	
-	function nextTick() {
-		var now = getNow(), diff = 1000 - now % 1000;
-		window.setTimeout(tick, diff);
-		ticked.setTime(now + diff);
+	function tack() {
+		var now = getNow(), timeout = 1000 - now % 1000;
+		window.setTimeout(tick, timeout);
+		
+		var time = now + timeout;
+		if (step) {
+			if (!stepped) {
+				var rem = 9000;
+				if (step < 0) {
+					ttime = time + 1000;
+					tstep = step;
+				} else {
+					rem -= step;
+				}
+				if (leap - time < rem) {
+					time -= step;
+				}
+			}
+		} else if (time == ttime) {
+			time -= tstep;
+		}
+		ticked.setTime(time);
 	}
 	
 	function tick() {
@@ -623,7 +891,7 @@ var jsont; // JSONPコールバック関数公開用
 			signal(secs);
 			announce(secs);
 		}
-		nextTick();
+		tack();
 	}
 	
 	// 初期化
@@ -644,15 +912,17 @@ var jsont; // JSONPコールバック関数公開用
 	}
 	
 	function init() {
-		window.setInterval(refresh, interval); // 表示更新開始
 		start(); // サーバ時刻取得開始
-		nextTick();
+		tack();
+		
+		onvisibilitychange.call($); // 表示更新開始
+		$.addEventListener(visibilitychange, onvisibilitychange);
 	}
 	
 	$.onreadystatechange = function () {
 		this.onreadystatechange = null;
 		
-		// TODO: hash から設定復元
+		load();
 		
 		// head 要素取得
 		head = $.getElementsByTagName('head')[0];
@@ -695,7 +965,7 @@ var jsont; // JSONPコールバック関数公開用
 		select = $.getElementById('voice');
 		select.onchange = onchangeVoice;
 		
-		if (speechSynthesis != null) {
+		if (speechSynthesis) {
 			speechSynthesis.onvoiceschanged = onvoiceschanged;
 			speechSynthesis.onvoiceschanged();
 		}
@@ -706,9 +976,11 @@ var jsont; // JSONPコールバック関数公開用
 		}
 		
 		for (id in config) {
-			inputs[id] = getInput(id);
+			input(id);
 		}
 		onchange();
+		
+		$.getElementById('save').onclick = save;
 		
 		$.onkeydown = onkeydown;
 		$.onkeyup   = onkeyup;

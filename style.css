@@ -38,7 +38,7 @@ body {
 
 #pref {
 	display: table;
-	margin: 4em auto;
+	margin: 4em auto 2em;
 	font-size: smaller;
 }
 #pref input, #pref select {
@@ -83,6 +83,10 @@ body {
 .container fieldset > div {
 	line-height: 1.5;
 }
+.container fieldset > div.right {
+	line-height: 2;
+	text-align: right;
+}
 
 .container label {
 	display: block;
@@ -104,10 +108,6 @@ body {
 	min-width: 7em;
 }
 
-.right {
-	line-height: 2 !important;
-	text-align: right;
-}
 .holidays {
 	margin-top: 0.5em;
 }
@@ -121,4 +121,12 @@ body {
 }
 .holidays input {
 	display: block;
+}
+
+.save {
+	line-height: 3;
+	text-align: right;
+}
+.save input {
+	min-width: 7em;
 }
