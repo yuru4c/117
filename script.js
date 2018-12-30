@@ -461,6 +461,10 @@ var jsont; // JSONPコールバック関数公開用
 		location.hash = hash;
 	}
 	
+	function help() {
+		window.open('https://github.com/yuru4c/117/blob/master/README.md');
+	}
+	
 	// 時刻補正 JSONP (http://www.nict.go.jp/JST/http.html)
 	
 	var diff = 0; // クライアント時刻 - サーバ時刻 (ミリ秒)
@@ -675,9 +679,6 @@ var jsont; // JSONPコールバック関数公開用
 		}
 	}
 	
-	
-	var ticked = new Date(0);
-	
 	// 発振音
 	
 	var gain = 0.5;
@@ -759,20 +760,20 @@ var jsont; // JSONPコールバック関数公開用
 	}
 	
 	function about(diff) {
-		ticked.setSeconds(ticked.getSeconds() + diff);
+		date.setSeconds(date.getSeconds() + diff);
 		var str = '';
-		var h = ticked.getHours();
-		var m = ticked.getMinutes();
-		var s = ticked.getSeconds();
+		var h = date.getHours();
+		var m = date.getMinutes();
+		var s = date.getSeconds();
 		var noon = h == 12, just = !(m || s);
 		
 		if (just) {
 			if (config.c) {
-				str += ticked.getMonth() + 1 + '月' + comma +
-				       ticked.getDate()      + '日' + comma;
+				str += date.getMonth() + 1 + '月' + comma +
+				       date.getDate()      + '日' + comma;
 			}
 			if (config.w) {
-				str += days[ticked.getDay()] + '曜日' + comma;
+				str += days[date.getDay()] + '曜日' + comma;
 			}
 			if (noon) {
 				return str + '正午';
@@ -845,14 +846,15 @@ var jsont; // JSONPコールバック関数公開用
 	
 	// 再生
 	
-	var ttime, tstep;
+	var ticked, ttime, tstep;
 	
 	function test() {
-		if (config[wids[ticked.getDay()]]) {
+		date.setTime(ticked);
+		if (config[wids[date.getDay()]]) {
 			return false;
 		}
 		if (config.k) {
-			var now = 60 * ticked.getHours() + ticked.getMinutes();
+			var now = 60 * date.getHours() + date.getMinutes();
 			var k1  = 60 * config.k1 +  1; var l = now <  k1;
 			var k2  = 60 * config.k2 + 59; var r = now >= k2;
 			return k1 > k2 ? l && r : l || r;
@@ -864,29 +866,28 @@ var jsont; // JSONPコールバック関数公開用
 		var now = getNow(), timeout = 1000 - now % 1000;
 		window.setTimeout(tick, timeout);
 		
-		var time = now + timeout;
+		ticked = now + timeout;
 		if (step) {
 			if (!stepped) {
 				var rem = 9000;
 				if (step < 0) {
-					ttime = time + 1000;
+					ttime = ticked + 1000;
 					tstep = step;
 				} else {
 					rem -= step;
 				}
-				if (leap - time < rem) {
-					time -= step;
+				if (leap - ticked < rem) {
+					ticked -= step;
 				}
 			}
-		} else if (time == ttime) {
-			time -= tstep;
+		} else if (ticked == ttime) {
+			ticked -= tstep;
 		}
-		ticked.setTime(time);
 	}
 	
 	function tick() {
 		if (test()) {
-			var secs = (+ticked + lag) / 1000;
+			var secs = (ticked + lag) / 1000;
 			signal(secs);
 			announce(secs);
 		}
@@ -979,6 +980,7 @@ var jsont; // JSONPコールバック関数公開用
 		}
 		onchange();
 		
+		$.getElementById('help').onclick = help;
 		$.getElementById('save').onclick = save;
 		
 		$.onkeydown = onkeydown;

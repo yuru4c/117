@@ -124,10 +124,10 @@ body {
 	display: block;
 }
 
-.save {
+.footer {
 	line-height: 3;
 	text-align: right;
 }
-.save input {
+.footer input {
 	min-width: 7em;
 }
