@@ -193,7 +193,7 @@ var jsont; // JSONPコールバック関数公開用
 	
 	function onkeydown(event) {
 		if (!event) event = window.event;
-		var altKey  = event.altKey;
+		var altKey = event.altKey;
 		alt(altKey);
 		
 		var key = String.fromCharCode(event.keyCode | 32);
@@ -247,13 +247,13 @@ var jsont; // JSONPコールバック関数公開用
 		d('r', config.l);
 		d('c', config.v);
 		d('w', config.v);
-		
-		force = true;
 	}
 	
 	function oncheck() {
 		config[this.id] = this.checked;
 		onchange();
+		
+		changed = this.id == 'l' || this.id == 'r';
 	}
 	function onselect() {
 		config[this.id] = +this.value;
@@ -452,7 +452,7 @@ var jsont; // JSONPコールバック関数公開用
 			hash += ' --pitch=' + params.pitch;
 		}
 		if (params.rate != 1) {
-			hash += ' --rate='  + params.rate;
+			hash += ' --rate=' + params.rate;
 		}
 		if (voice) {
 			hash += ' --voice=' + quote(voice.voiceURI);
@@ -480,7 +480,7 @@ var jsont; // JSONPコールバック関数公開用
 	
 	var head; // head要素 appendChild(script)用
 	
-	var running = false, first; // 実行中, 最初の受信フラグ
+	var running, first; // 実行中, 最初の受信フラグ
 	var maxL, minU; // 時差 下限の最大値, 上限の最小値 (ミリ秒)
 	var i, length = ids.length;
 	
@@ -524,7 +524,7 @@ var jsont; // JSONPコールバック関数公開用
 		
 		window.clearTimeout(timeoutId); // タイムアウト解除
 		
-		var serverTime   = json.st * 1000; // (ミリ秒)
+		var serverTime = json.st * 1000; // (ミリ秒)
 		
 		var l = it * 1000    - serverTime; // 時差 下限 (ミリ秒)
 		var u = receivedDate - serverTime; // 時差 上限 (ミリ秒)
@@ -585,7 +585,7 @@ var jsont; // JSONPコールバック関数公開用
 				date.setTime(getNow());
 				lastText.data = date.toLocaleString();
 			}
-			refetch.disable = false;
+			refetch.disabled = false;
 			
 			running = false;
 		}
@@ -597,7 +597,7 @@ var jsont; // JSONPコールバック関数公開用
 		running = true;
 		
 		// 表示更新
-		refetch.disable = true;
+		refetch.disabled = true;
 		for (var j = 1; j < length; j++) {
 			log(j, '保留');
 		}
@@ -615,7 +615,7 @@ var jsont; // JSONPコールバック関数公開用
 	var titleText, hrs, mins, secs, ms; // TextNodes
 	
 	var pm, ps; // 前の値 (上位含む)
-	var pstep, force = false;
+	var pstep, changed;
 	
 	var refreshing;
 	
@@ -636,20 +636,20 @@ var jsont; // JSONPコールバック関数公開用
 	
 	// 表示を更新
 	function refresh() {
-		var now = getNow();    // 現在時刻
+		var now = getNow(); // 現在時刻
 		if (stepped) {
 			now += step;
 		}
 		
 		// 変化する単位まで更新
 		var rem = write(ms, now, 1000);
-		if (rem == ps && !force && stepped == pstep) return;
+		if (rem == ps && !changed && stepped == pstep) return;
 		
 		rem = write(secs, ps = rem, 60, pstep = stepped);
-		if (rem == pm && !force) return;
+		if (rem == pm && !changed) return;
 		
 		pm = rem;
-		force = false;
+		changed = false;
 		
 		date.setTime(now);
 		write(mins, date.getMinutes(), 60);
@@ -900,7 +900,7 @@ var jsont; // JSONPコールバック関数公開用
 	
 	for (i = 0; i < length; i++) {
 		var id = ids[i];
-		servers[i] = 'https://' + id + '/cgi-bin/jsont?';
+		servers[i] = '//' + id + '/cgi-bin/jsont?';
 		
 		var li = $.createElement('li');
 		li.appendChild($.createTextNode(id + ': '));
@@ -937,10 +937,10 @@ var jsont; // JSONPコールバック関数公開用
 		
 		// 時間表示 TextNode取得
 		var tts = main.getElementsByTagName('tt');
-		hrs   = tts[0].firstChild;
-		mins  = tts[1].firstChild;
-		secs  = tts[2].firstChild;
-		ms    = tts[3].firstChild;
+		hrs  = tts[0].firstChild;
+		mins = tts[1].firstChild;
+		secs = tts[2].firstChild;
+		ms   = tts[3].firstChild;
 		
 		// 設定画面
 		

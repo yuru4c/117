@@ -7,7 +7,7 @@ body {
 	    -ms-text-size-adjust: none;
 }
 
-#main span, #pref .content span {
+#main span, .content span {
 	display: inline-block;
 }
 
@@ -38,14 +38,26 @@ body {
 /* 設定画面 */
 
 #pref {
+	margin: 3em 0 1em;
+	overflow: auto;
+}
+.center {
 	display: table;
-	margin: 4em auto 2em;
+	margin: auto;
 	font-size: smaller;
 }
 #pref input, #pref select {
 	font-size: 1em;
 }
-#pref .content {
+#pref label {
+	white-space: nowrap;
+}
+
+.clear {
+	clear: both;
+}
+
+.content {
 	white-space: nowrap;
 }
 #diff, #log {
@@ -56,7 +68,11 @@ body {
 	line-height: 2.5;
 }
 .voice label {
-	display: inline-block;
+	display: block;
+}
+.voice label + label {
+	float: left;
+	min-width: 50%;
 }
 .voice input {
 	text-align: right;
@@ -68,25 +84,29 @@ body {
 
 .container {
 	margin-top: 0.625em;
-	overflow: hidden;
 }
-.container > div {
+.float {
 	float: left;
-}
-.container > div:first-child {
 	margin-right: 0.75em;
 }
+.float + .float {
+	margin-right: 0;
+}
+
 .container fieldset {
 	margin-top: 0.625em;
 }
-
-.container fieldset > label,
-.container fieldset > div {
+.container fieldset label,
+.container fieldset div {
 	line-height: 1.5;
 }
-.container fieldset > div.right {
-	line-height: 2;
+
+.container fieldset > .right {
 	text-align: right;
+}
+.container .right label,
+.container .right div {
+	line-height: 2;
 }
 
 .container label {
@@ -111,6 +131,7 @@ body {
 
 .holidays {
 	margin-top: 0.5em;
+	white-space: nowrap;
 }
 .holidays span {
 	float: left;

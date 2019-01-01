@@ -5,9 +5,9 @@
 	<meta name="viewport" content="width=device-width, initial-scale=1">
 	<meta name="format-detection" content="date=no">
 	
-	<title>オンライン 117 ver. 20181231</title>
+	<title>オンライン 117 ver. 20190101</title>
 	
-	<link rel="stylesheet" href="style.css?20181231">
+	<link rel="stylesheet" href="style.css?20190101">
 </head>
 <body>
 	
@@ -16,28 +16,28 @@
 	<div id="main">
 		<p id="title">―</p>
 		<p>
-			<span>
-				<span id="h12">
+			<span id="h12">
+				<span>
 					<span class="am">午前</span>
 					<span class="pm">午後</span>
 				</span>
-				<span><tt>-</tt> <span>時</span></span>
 			</span>
 			<span>
+				<span><tt>-</tt> <span>時</span></span>
 				<span><tt>-</tt> <span>分</span></span>
 			</span>
 			<span>
 				<span><tt>-</tt> <span>秒</span></span>
 			</span>
-			<span class="ms">
-				<span><span>.</span><tt>-</tt></span>
+			<span>
+				<span class="ms"><span>.</span><tt>-</tt></span>
 			</span>
 		</p>
 	</div>
 	
 	<!-- 設定画面 -->
 	
-	<div id="pref">
+	<div id="pref"><div class="center">
 		<div class="content">
 			<label>時刻補正: </label>
 			<input type="button" value="再取得" id="refetch">
@@ -52,7 +52,6 @@
 					<option disabled></option>
 				</select>
 			</label>
-			<br>
 			<label for="pitch">
 				音程:
 				<input size="4" id="pitch-t">
@@ -63,9 +62,10 @@
 				<input size="4" id="rate-t">
 				<input type="range" step="0.1" min="0.1" max="10" id="rate">
 			</label>
+			<div class="clear"></div>
 		</div>
 		<div class="container">
-			<div>
+			<div class="float">
 				<fieldset>
 					<legend>発振音</legend>
 					<label>
@@ -205,7 +205,7 @@
 					</div>
 				</fieldset>
 			</div>
-			<div>
+			<div class="float">
 				<fieldset>
 					<legend>アナウンス</legend>
 					<label>
@@ -217,6 +217,7 @@
 							間隔(<kbd>I</kbd>):
 							<select id="i">
 								<option value="10">10秒</option>
+								<option value="15">15秒</option>
 								<option value="20">20秒</option>
 								<option value="30">30秒</option>
 								<option value="60">1分</option>
@@ -292,13 +293,13 @@
 					</label>
 				</fieldset>
 			</div>
+			<div class="footer clear">
+				<input type="button" value="ヘルプ" id="help">
+				<input type="button" value="設定を保存" id="save">
+			</div>
 		</div>
-		<div class="footer">
-			<input type="button" value="ヘルプ" id="help">
-			<input type="button" value="設定を保存" id="save">
-		</div>
-	</div>
+	</div></div>
 	
-	<script type="text/javascript" src="script.js?20181231"></script>
+	<script type="text/javascript" src="script.js?20190101"></script>
 </body>
 </html>
