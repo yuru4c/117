@@ -14,14 +14,15 @@ var jsont; // JSONPコールバック関数公開用
 	
 	var webkit = 'webkit', moz = 'moz';
 	function prefix(object, key, vendors) {
-		if (!(key in object)) {
-			var uc = key.charAt(0).toUpperCase() + key.substr(1);
-			var l = vendors.length;
-			for (var i = 0; i < l; i++) {
-				var prefixed = vendors[i] + uc;
-				if (prefixed in object) {
-					return prefixed;
-				}
+		if (key in object) {
+			return key;
+		}
+		var uc = key.charAt(0).toUpperCase() + key.substr(1);
+		var l = vendors.length;
+		for (var i = 0; i < l; i++) {
+			var prefixed = vendors[i] + uc;
+			if (prefixed in object) {
+				return prefixed;
 			}
 		}
 		return key;
