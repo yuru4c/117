@@ -7,10 +7,6 @@ body {
 	    -ms-text-size-adjust: none;
 }
 
-#main span, .content span {
-	display: inline-block;
-}
-
 /* メイン画面 */
 
 #main {
@@ -19,6 +15,9 @@ body {
 #title {
 	word-break: keep-all;
 	font-size: 2em;
+}
+#main span {
+	display: inline-block;
 }
 #main span span span {
 	font-size: 2em;
