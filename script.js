@@ -84,6 +84,10 @@ var jsont; // JSONPコールバック関数公開用
 		logTexts[i].data = str;
 	}
 	
+	function selectVoice() {
+		voice = voices[select.selectedIndex];
+	}
+	
 	function onvoiceschanged() {
 		var vs = this.getVoices();
 		var restore = false;
@@ -121,11 +125,12 @@ var jsont; // JSONPコールバック関数公開用
 		if (sel) {
 			select.selectedIndex = sel - 1;
 		}
-		select.onchange();
+		selectVoice();
 	}
 	
 	function onchangeVoice() {
-		voice = this.value ? voices[this.selectedIndex] : null;
+		voiceURI = null;
+		selectVoice();
 	}
 	
 	function toFixed(number) {
