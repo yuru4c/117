@@ -475,7 +475,7 @@ var jsont; // JSONPコールバック関数公開用
 	
 	var diff = 0; // クライアント時刻 - サーバ時刻 (ミリ秒)
 	
-	var leap, step; var stepped;
+	var leap, step; var stepped = false;
 	
 	var ids = [
 		'ntp-a1.nict.go.jp',
