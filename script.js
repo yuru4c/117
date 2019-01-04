@@ -497,22 +497,17 @@ var jsont; // JSONPコールバック関数公開用
 	// 補正された現在時刻を取得
 	function getNow() {
 		var now = new Date() - diff;
-		if (!stepped && step) {
-			var del = step < 0;
-			if (now - leap >= (del ? step : 0)) {
+		if (step) {
+			if (!stepped && now >= (step < 0 ? leap + step : leap)) {
 				diff += step;
 				now  -= step;
 				result();
-				if (del) {
-					step = 0;
-				} else {
-					stepped = true;
-				}
+				stepped = true;
 			}
-		}
-		if (stepped && now >= leap) {
-			step = 0;
-			stepped = false;
+			if (stepped && now >= leap) {
+				step = 0;
+				stepped = false;
+			}
 		}
 		return now;
 	}
@@ -623,7 +618,7 @@ var jsont; // JSONPコールバック関数公開用
 	var pm, ps; // 前の値 (上位含む)
 	var pstep, changed;
 	
-	var refreshing;
+	var refreshId;
 	
 	function write(textNode, value, unit, add) { // 書き換え
 		var num = value % unit; // 表示する値
@@ -674,13 +669,13 @@ var jsont; // JSONPコールバック関数公開用
 	
 	function onvisibilitychange() {
 		if (this[hidden]) {
-			if (refreshing != null) {
-				window.clearInterval(refreshing);
-				refreshing = null;
+			if (refreshId != null) {
+				window.clearInterval(refreshId);
+				refreshId = null;
 			}
 		} else {
-			if (refreshing == null) {
-				refreshing = window.setInterval(refresh, interval);
+			if (refreshId == null) {
+				refreshId = window.setInterval(refresh, interval);
 			}
 		}
 	}
@@ -852,7 +847,7 @@ var jsont; // JSONPコールバック関数公開用
 	
 	// 再生
 	
-	var ticked, ttime, tstep;
+	var ticked;
 	
 	function test() {
 		date.setTime(ticked);
@@ -873,21 +868,9 @@ var jsont; // JSONPコールバック関数公開用
 		window.setTimeout(tick, timeout);
 		
 		ticked = now + timeout;
-		if (step) {
-			if (!stepped) {
-				var rem = 9000;
-				if (step < 0) {
-					ttime = ticked + 1000;
-					tstep = step;
-				} else {
-					rem -= step;
-				}
-				if (leap - ticked < rem) {
-					ticked -= step;
-				}
-			}
-		} else if (ticked == ttime) {
-			ticked -= tstep;
+		if (!step || stepped) return;
+		if (ticked > (step < 0 ? leap : leap + step) - 9000) {
+			ticked -= step;
 		}
 	}
 	
