@@ -688,6 +688,7 @@ var jsont; // JSONPコールバック関数公開用
 		}
 	}
 	
+	
 	// 発振音
 	
 	var gain = 0.5;
@@ -695,8 +696,7 @@ var jsont; // JSONPコールバック関数公開用
 	function Tone(frequency, duration, ramp) {
 		this.frequency = frequency;
 		this.duration = duration;
-		this.ramp = ramp == null ?
-			duration - 1 / frequency : ramp;
+		this.ramp = ramp;
 	}
 	var tones = [
 		[
@@ -721,8 +721,10 @@ var jsont; // JSONPコールバック関数公開用
 		var oscillator = context.createOscillator();
 		
 		param.value = gain;
-		param.setValueAtTime(gain, time + tone.ramp);
-		param.linearRampToValueAtTime(0, end);
+		if (tone.ramp != null) {
+			param.setValueAtTime(gain, time + tone.ramp);
+			param.linearRampToValueAtTime(0, end);
+		}
 		node.connect(destination);
 		
 		oscillator.frequency.value = tone.frequency;
@@ -731,17 +733,17 @@ var jsont; // JSONPコールバック関数公開用
 		oscillator.connect(node);
 	}
 	
-	function signal(secs) {
+	function signal(t, timeout) {
 		if (config.s || config.x && speechSynthesis.speaking) return;
 		
+		var time = context.currentTime + timeout / 1000;
 		var tone = tones[config.f];
 		var quiet = true;
-		var time = context.currentTime;
 		
-		if (secs % config.d) {
+		if (t % config.d) {
 			if (!config.y) {
-				var d30 = 30 - secs % 30;
-				if (!(d30 > config.a || (secs + d30) % config.d)) {
+				var d30 = 30 - t % 30;
+				if (!(d30 > config.a || (t + d30) % config.d)) {
 					play(time, tone[0]);
 					quiet = false;
 				}
@@ -768,8 +770,8 @@ var jsont; // JSONPコールバック関数公開用
 		speechSynthesis.speak(utterance);
 	}
 	
-	function about(diff) {
-		date.setSeconds(date.getSeconds() + diff);
+	function about(secs) {
+		date.setSeconds(date.getSeconds() + secs);
 		var str = '';
 		var h = date.getHours();
 		var m = date.getMinutes();
@@ -815,9 +817,9 @@ var jsont; // JSONPコールバック関数公開用
 		return str;
 	}
 	
-	function announce(secs) {
+	function announce(t) {
 		if (config.v || speechSynthesis.speaking) return;
-		var p = -secs % config.i, n = config.i + p;
+		var p = -t % config.i, n = config.i + p;
 		
 		if (n == 9) {
 			switch (config.n) {
@@ -855,40 +857,29 @@ var jsont; // JSONPコールバック関数公開用
 	
 	// 再生
 	
-	var ticked;
-	
-	function test() {
-		date.setTime(ticked);
-		if (config[wids[date.getDay()]]) {
-			return false;
-		}
-		if (config.k) {
-			var now = 60 * date.getHours() + date.getMinutes();
-			var k1  = 60 * config.k1 +  1; var l = now <  k1;
-			var k2  = 60 * config.k2 + 59; var r = now >= k2;
-			return k1 > k2 ? l && r : l || r;
-		}
-		return true;
-	}
-	
-	function tack() {
-		var now = getNow(), timeout = 1000 - now % 1000;
+	function tick() {
+		var now = getNow(), r = now % 1000, timeout = 1000 - r;
 		window.setTimeout(tick, timeout);
 		
-		ticked = now + timeout;
-		if (!step || stepped) return;
-		if (ticked > (step < 0 ? leap : leap + step) - 9000) {
-			ticked -= step;
+		var ticked = now - r;
+		if (step && !stepped) {
+			if (ticked > (step < 0 ? leap : leap + step) - 9000) {
+				ticked -= step;
+			}
 		}
-	}
-	
-	function tick() {
-		if (test()) {
-			var secs = (ticked + lag) / 1000;
-			signal(secs);
-			announce(secs);
+		
+		date.setTime(ticked);
+		if (config[wids[date.getDay()]]) return;
+		if (config.k) {
+			var kn = 60 * date.getHours() + date.getMinutes();
+			var k1 = 60 * config.k1 +  1; var kl = kn >= k1;
+			var k2 = 60 * config.k2 + 59; var kr = kn <  k2;
+			if (k1 > k2 ? kl || kr : kl && kr) return;
 		}
-		tack();
+		
+		var t = (ticked + lag) / 1000;
+		signal(t + 1, timeout);
+		announce(t);
 	}
 	
 	// 初期化
@@ -911,7 +902,7 @@ var jsont; // JSONPコールバック関数公開用
 	
 	function init() {
 		start(); // サーバ時刻取得開始
-		tack();
+		tick();
 		
 		onvisibilitychange.call($); // 表示更新開始
 		$.addEventListener(visibilitychange, onvisibilitychange);
