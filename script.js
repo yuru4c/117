@@ -688,7 +688,6 @@ var jsont; // JSONPコールバック関数公開用
 		}
 	}
 	
-	
 	// 発振音
 	
 	var gain = 0.5;
