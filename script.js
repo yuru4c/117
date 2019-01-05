@@ -47,8 +47,10 @@ var jsont; // JSONPコールバック関数公開用
 	var lag = -new Date(70, 0);
 	var days = ['日', '月', '火', '水', '木', '金', '土'];
 	
-	var inputTag = 'INPUT', selectTag = 'SELECT';
 	var location = window.location;
+	var https = 'https:', http = 'http:';
+	
+	var inputTag = 'INPUT', selectTag = 'SELECT';
 	
 	var hidden = prefix($, 'hidden', [webkit, moz]);
 	var visibilitychange = hidden.slice(0, -6) + 'visibilitychange';
@@ -84,7 +86,7 @@ var jsont; // JSONPコールバック関数公開用
 		logTexts[i].data = str;
 	}
 	
-	function selectVoice() {
+	function setVoice() {
 		voice = voices[select.selectedIndex];
 	}
 	
@@ -92,25 +94,25 @@ var jsont; // JSONPコールバック関数公開用
 		var vs = this.getVoices();
 		var restore = false;
 		var sel = 0, i;
+		
 		voices.length = 0;
 		for (i = select.length - 1; i >= 0; i--) {
 			select.remove(i);
 		}
-		
 		for (i = 0; i < vs.length; i++) {
 			var v = vs[i];
-			if (!v.lang || langRe.test(v.lang)) {
+			var lang = v.lang;
+			if (!lang || langRe.test(lang)) {
 				var l = voices.push(v);
-				var name = v.name;
-				var uri  = v.voiceURI;
-				var def  = v['default'];
+				var uri = v.voiceURI;
+				var def = v['default'];
 				
 				var option = $.createElement('option');
 				option.appendChild($.createTextNode(
-					def ? name + ' （既定値）' : name));
+					def ? v.name + ' （既定値）' : v.name));
 				select.add(option);
 				
-				if (uri == voiceURI) {
+				if (voiceURI != null && uri == voiceURI) {
 					restore = true;
 					sel = l;
 					voiceURI = null;
@@ -125,21 +127,23 @@ var jsont; // JSONPコールバック関数公開用
 		if (sel) {
 			select.selectedIndex = sel - 1;
 		}
-		selectVoice();
+		setVoice();
 	}
 	
-	function onchangeVoice() {
+	function onchange() {
 		voiceURI = null;
-		selectVoice();
+		setVoice();
 	}
 	
 	function toFixed(number) {
 		return number.toFixed(1);
 	}
+	
 	function bind(id) {
 		var param = params[id];
-		var input = $.getElementById(id + '-t');
-		var range = $.getElementById(id);
+		var input = $.getElementById(id);
+		var range = $.getElementById(id + '-r');
+		
 		input.value = input.placeholder = toFixed(param);
 		range.value = range.defaultValue = param;
 		
@@ -156,6 +160,7 @@ var jsont; // JSONPコールバック関数公開用
 			this.oninput();
 			this.value = toFixed(params[id]);
 		};
+		
 		range.oninput = function () {
 			input.value = toFixed(+this.value);
 		};
@@ -190,8 +195,6 @@ var jsont; // JSONPコールバック関数公開用
 		'j', 'l', 'x', 'c', '_', 'w', 'z', 'g', 'r'
 	];
 	var wids = ['h0', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6'];
-	
-	var c0 = '0', c1 = '1';
 	
 	function alt(altKey) {
 		pref.className = altKey ? 'alt' : '';
@@ -232,7 +235,8 @@ var jsont; // JSONPコールバック関数公開用
 		input.disabled = disabled;
 		input.parentNode.className = disabled ? 'disabled' : '';
 	}
-	function onchange() {
+	
+	function disable() {
 		d('d', config.s);
 		d('f', config.s);
 		d('t', config.s);
@@ -257,13 +261,13 @@ var jsont; // JSONPコールバック関数公開用
 	
 	function oncheck() {
 		config[this.id] = this.checked;
-		onchange();
+		disable();
 		
 		changed = this.id == 'l' || this.id == 'r';
 	}
 	function onselect() {
 		config[this.id] = +this.value;
-		onchange();
+		disable();
 	}
 	
 	function activate() {
@@ -314,6 +318,10 @@ var jsont; // JSONPコールバック関数公開用
 	}
 	
 	var rs = /\s/, rb = /\\\\/g, rq = /\\"/g, re = /\\(?=\s|")/g;
+	var escb = /\\/g, escq = /"/g;
+	
+	var c0 = '0', c1 = '1';
+	
 	function parse(str) {
 		var args = []; var i = 0;
 		for (var c; c = str.charAt(i); i++) {
@@ -338,7 +346,6 @@ var jsont; // JSONPコールバック関数公開用
 		return args;
 	}
 	
-	var escb = /\\/g, escq = /"/g;
 	function quote(str) {
 		return '"' + str
 			.replace(escb, '\\\\')
@@ -432,6 +439,7 @@ var jsont; // JSONPコールバック関数公開用
 		}
 		return flag ? flags : null;
 	}
+	
 	function save() {
 		var hash = '-x' + gets(xids, true);
 		var w = gets(wids, false);
@@ -770,8 +778,8 @@ var jsont; // JSONPコールバック関数公開用
 		
 		if (just) {
 			if (config.c) {
-				str += date.getMonth() + 1 + '月' + comma +
-				       date.getDate()      + '日' + comma;
+				str += date.getMonth() + 1 + '月' + comma;
+				str += date.getDate()      + '日' + comma;
 			}
 			if (config.w) {
 				str += days[date.getDay()] + '曜日' + comma;
@@ -886,14 +894,15 @@ var jsont; // JSONPコールバック関数公開用
 	// 初期化
 	
 	var lis = []; // 時刻補正ログ li要素
+	var url = (location.protocol == https ? https : http) + '//';
 	
 	for (i = 0; i < length; i++) {
 		var id = ids[i];
-		servers[i] = '//' + id + '/cgi-bin/jsont?';
+		servers[i] = url + id + '/cgi-bin/jsont?';
 		
 		var li = $.createElement('li');
-		li.appendChild($.createTextNode(id + ': '));
 		var logText = $.createTextNode('―'); // 書き換え用TextNode
+		li.appendChild($.createTextNode(id + ': '));
 		li.appendChild(logText);
 		
 		lis[i] = li;
@@ -952,7 +961,7 @@ var jsont; // JSONPコールバック関数公開用
 		// 設定取得
 		
 		select = $.getElementById('voice');
-		select.onchange = onchangeVoice;
+		select.onchange = onchange;
 		
 		if (speechSynthesis) {
 			speechSynthesis.onvoiceschanged = onvoiceschanged;
@@ -967,7 +976,7 @@ var jsont; // JSONPコールバック関数公開用
 		for (id in config) {
 			input(id);
 		}
-		onchange();
+		disable();
 		
 		$.getElementById('help').onclick = help;
 		$.getElementById('save').onclick = save;

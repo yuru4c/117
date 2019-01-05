@@ -24,8 +24,7 @@ body {
 	font-size: 4em;
 }
 
-#h12.h24,
-#h12.am .pm, #h12.pm .am {
+#h12.h24, #h12.am .pm, #h12.pm .am {
 	display: none;
 }
 #main .ms tt {
@@ -38,25 +37,27 @@ body {
 	margin: 3em 0 1em;
 	overflow: auto;
 }
-.center {
+.pref {
 	display: table;
 	margin: auto;
 	font-size: smaller;
 }
-#pref input, #pref select {
+.pref input, .pref select {
 	font-size: 1em;
 }
-#pref label {
+.pref label, .pref span, .nowrap {
 	white-space: nowrap;
 }
-
+.float {
+	float: left;
+}
 .clear {
 	clear: both;
 }
-
-.content {
-	white-space: nowrap;
+.right {
+	text-align: right;
 }
+
 #diff, #log {
 	font-family: monospace, sans-serif;
 }
@@ -64,15 +65,14 @@ body {
 .voice {
 	line-height: 2.5;
 }
-.voice label {
+.voice span {
 	display: block;
 }
-.voice label + label {
-	float: left;
+.voice .float {
 	min-width: 50%;
 }
-.voice input {
-	text-align: right;
+.voice label {
+	display: inline-block;
 }
 .voice input[type="range"] {
 	width: 12em;
@@ -82,32 +82,19 @@ body {
 .container {
 	margin-top: 0.625em;
 }
-.float {
-	float: left;
+.container .float {
 	margin-right: 0.75em;
 }
-.float + .float {
+.container .float + .float {
 	margin-right: 0;
 }
-
 .container fieldset {
 	margin-top: 0.625em;
 }
-.container fieldset label,
-.container fieldset div {
-	line-height: 1.5;
-}
 
-.container fieldset > .right {
-	text-align: right;
-}
-.container .right label,
-.container .right div {
-	line-height: 2;
-}
-
-.container label {
+.container label, .container span {
 	display: block;
+	line-height: 1.5;
 }
 .disabled {
 	color: gray;
@@ -119,16 +106,21 @@ body {
 	text-decoration: underline;
 }
 
-.container select {
+fieldset > .select {
+	text-align: right;
+}
+.select label, .select span {
+	line-height: 2;
+}
+.select select {
 	min-width: 14em;
 }
-.container .small {
+.select .small {
 	min-width: 7em;
 }
 
 .holidays {
 	margin-top: 0.5em;
-	white-space: nowrap;
 }
 .holidays span {
 	float: left;
@@ -144,7 +136,6 @@ body {
 
 .footer {
 	line-height: 3;
-	text-align: right;
 }
 .footer input {
 	min-width: 7em;
