@@ -732,17 +732,17 @@ var jsont; // JSONPコールバック関数公開用
 		oscillator.connect(node);
 	}
 	
-	function signal(t, timeout) {
+	function signal(s, timeout) {
 		if (config.s || config.x && speechSynthesis.speaking) return;
 		
 		var time = context.currentTime + timeout / 1000;
 		var tone = tones[config.f];
 		var quiet = true;
 		
-		if (t % config.d) {
+		if (s % config.d) {
 			if (!config.y) {
-				var d30 = 30 - t % 30;
-				if (!(d30 > config.a || (t + d30) % config.d)) {
+				var d30 = 30 - s % 30;
+				if (!(d30 > config.a || (s + d30) % config.d)) {
 					play(time, tone[0]);
 					quiet = false;
 				}
@@ -816,11 +816,11 @@ var jsont; // JSONPコールバック関数公開用
 		return str;
 	}
 	
-	function announce(t) {
+	function announce(s) {
 		if (config.v || speechSynthesis.speaking) return;
-		var p = -t % config.i, n = config.i + p;
+		var p = -s % config.i, n = config.i + p;
 		
-		if (n == 9) {
+		if (n == 8) {
 			switch (config.n) {
 				case 0:
 				speak(about(n) + 'を' + comma + 'お伝えします');
@@ -836,7 +836,7 @@ var jsont; // JSONPコールバック関数公開用
 				return;
 			}
 		}
-		if (p == -1) {
+		if (p == -2) {
 			switch (config.p) {
 				case 1:
 				speak(about(p) + 'を' + comma + 'お伝えしました');
@@ -857,28 +857,28 @@ var jsont; // JSONPコールバック関数公開用
 	// 再生
 	
 	function tick() {
-		var now = getNow(), r = now % 1000, timeout = 1000 - r;
+		var now = getNow(), timeout = 1000 - now % 1000;
 		window.setTimeout(tick, timeout);
-		
-		var ticked = now - r;
+		var next = now + timeout;
 		if (step && !stepped) {
-			if (ticked > (step < 0 ? leap : leap + step) - 9000) {
-				ticked -= step;
+			if (next > (step < 0 ? leap : leap + step) - 8000) {
+				next -= step;
 			}
 		}
 		
-		date.setTime(ticked);
+		date.setTime(next);
 		if (config[wids[date.getDay()]]) return;
 		if (config.k) {
-			var kn = 60 * date.getHours() + date.getMinutes();
-			var k1 = 60 * config.k1 +  1; var kl = kn >= k1;
-			var k2 = 60 * config.k2 + 59; var kr = kn <  k2;
-			if (k1 > k2 ? kl || kr : kl && kr) return;
+			var m  = 60 * date.getHours() + date.getMinutes();
+			var k1 = 60 * config.k1 +  1;
+			var k2 = 60 * config.k2 + 59;
+			var ge1 = m >= k1, lt2 = m < k2;
+			if (k1 > k2 ? ge1 || lt2 : ge1 && lt2) return;
 		}
 		
-		var t = (ticked + lag) / 1000;
-		signal(t + 1, timeout);
-		announce(t);
+		var s = (next + lag) / 1000;
+		signal(s, timeout);
+		announce(s);
 	}
 	
 	// 初期化
