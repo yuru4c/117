@@ -57,24 +57,28 @@ body {
 .right {
 	text-align: right;
 }
+.disabled {
+	color: gray;
+}
 
 #diff, #log {
 	font-family: monospace, sans-serif;
 }
 
-.voice {
+#params {
 	line-height: 2.5;
 }
-.voice span {
+#params span {
 	display: block;
 }
-.voice .float {
+#params .float {
 	min-width: 50%;
 }
-.voice label {
+#params label {
 	display: inline-block;
 }
-.voice input[type="range"] {
+#params input[type="range"] {
+	padding: 0;
 	width: 12em;
 	vertical-align: middle;
 }
@@ -96,9 +100,6 @@ body {
 	display: block;
 	line-height: 1.5;
 }
-.disabled {
-	color: gray;
-}
 .container kbd {
 	font: inherit;
 }
@@ -106,7 +107,7 @@ body {
 	text-decoration: underline;
 }
 
-fieldset > .select {
+.select {
 	text-align: right;
 }
 .select label, .select span {

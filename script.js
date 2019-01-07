@@ -6,6 +6,8 @@ var jsont; // JSONPコールバック関数公開用
 	var String = this.String;
 	var Date   = this.Date;
 	
+	var Math = this.Math;
+	
 	var isNaN = this.isNaN;
 	var parseInt   = this.parseInt;
 	var parseFloat = this.parseFloat;
@@ -34,30 +36,34 @@ var jsont; // JSONPコールバック関数公開用
 	// 設定
 	
 	// 表示更新間隔
-	var interval = 43;
+	var interval = Math.ceil((1000 / 24 - 1) / 2) * 2 + 1;
 	
 	// 時刻取得タイムアウト
 	var period = 1000;
+	
+	var gain = Math.SQRT1_2 / 2;
 	
 	var lang = 'ja-JP';
 	var langRe = /^ja([-_].*)?$/i;
 	
 	
-	var date = new Date(0);
-	var lag = -new Date(70, 0);
+	var date = new Date(70, 0);
+	var lag = -date;
 	var days = ['日', '月', '火', '水', '木', '金', '土'];
 	
 	var location = window.location;
 	var https = 'https:', http = 'http:';
 	
 	var inputTag = 'INPUT', selectTag = 'SELECT';
+	var dClass = 'disabled';
 	
 	var hidden = prefix($, 'hidden', [webkit, moz]);
 	var visibilitychange = hidden.slice(0, -6) + 'visibilitychange';
 	
-	var context; var destination;
-	var speechSynthesis = window.speechSynthesis;
-	var voices = []; var voice;
+	var context; var destination; var breaker;
+	var latency;
+	
+	var synthesis = window.speechSynthesis;
 	
 	// 設定画面
 	
@@ -68,6 +74,7 @@ var jsont; // JSONPコールバック関数公開用
 	
 	var select;
 	var voiceURI;
+	var voices = []; var voice;
 	var params = {pitch: 1, rate: 1};
 	
 	// 文字列
@@ -118,7 +125,7 @@ var jsont; // JSONPコールバック関数公開用
 					voiceURI = null;
 				}
 				if (restore) continue;
-				restore = voice && uri == voice.voiceURI;
+				restore = voice != null && uri == voice.voiceURI;
 				if (restore || !sel && def) {
 					sel = l;
 				}
@@ -139,13 +146,19 @@ var jsont; // JSONPコールバック関数公開用
 		return number.toFixed(1);
 	}
 	
-	function bind(id) {
+	function bind(id, disabled) {
 		var param = params[id];
 		var input = $.getElementById(id);
 		var range = $.getElementById(id + '-r');
 		
 		input.value = input.placeholder = toFixed(param);
 		range.value = range.defaultValue = param;
+		
+		if (disabled) {
+			input.disabled = true;
+			range.disabled = true;
+			return;
+		}
 		
 		input.oninput = function () {
 			if (!this.value || isNaN(this.value)) {
@@ -196,44 +209,10 @@ var jsont; // JSONPコールバック関数公開用
 	];
 	var wids = ['h0', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6'];
 	
-	function alt(altKey) {
-		pref.className = altKey ? 'alt' : '';
-	}
-	
-	function onkeydown(event) {
-		if (!event) event = window.event;
-		var altKey = event.altKey;
-		alt(altKey);
-		
-		var key = String.fromCharCode(event.keyCode | 32);
-		if (key in inputs) {
-			var input = inputs[key];
-			if (input.disabled) return;
-			
-			var target = event.target || event.srcElement;
-			var tagName = target.tagName;
-			var not = !(
-				tagName == selectTag ||
-				tagName == inputTag && target.type == 'text');
-			if (not || altKey) {
-				input.focus();
-				if (altKey) {
-					if (not) {
-						input.click();
-					}
-					return false;
-				}
-			}
-		}
-	}
-	function onkeyup(event) {
-		alt((event || window.event).altKey);
-	}
-	
 	function d(id, disabled) {
 		var input = inputs[id];
 		input.disabled = disabled;
-		input.parentNode.className = disabled ? 'disabled' : '';
+		input.parentNode.className = disabled ? dClass : '';
 	}
 	
 	function disable() {
@@ -259,39 +238,49 @@ var jsont; // JSONPコールバック関数公開用
 		d('w', config.v);
 	}
 	
+	function resume() {
+		if (!context) {
+			context = new AudioContext();
+			
+			destination = context.createGain();
+			destination.connect(context.destination);
+			breaker = destination.gain;
+			breaker.value = gain;
+			
+			latency = context.baseLatency;
+			if (latency == null) {
+				latency = 0;
+			}
+		}
+		if (context.resume != null) {
+			context.resume();
+		}
+	}
+	
 	function oncheck() {
+		switch (this.id) {
+			case 's':
+			if (!this.checked) {
+				resume();
+			}
+			break;
+			
+			case 'v':
+			if (!this.checked) {
+				speak('');
+			}
+			break;
+			
+			case 'l': case 'r':
+			changed = true;
+			break;
+		}
 		config[this.id] = this.checked;
 		disable();
-		
-		changed = this.id == 'l' || this.id == 'r';
 	}
 	function onselect() {
 		config[this.id] = +this.value;
 		disable();
-	}
-	
-	function activate() {
-		if (!this.checked) {
-			try {
-				switch (this.id) {
-					case 's':
-					if (!context) {
-						context = new AudioContext();
-						destination = context.destination;
-					}
-					context.resume();
-					break;
-					
-					case 'v':
-					speak('');
-					break;
-				}
-			} catch (e) {
-				window.alert(e);
-				this.checked = true;
-			}
-		}
-		oncheck.call(this);
 	}
 	
 	function input(id) {
@@ -302,8 +291,7 @@ var jsont; // JSONPコールバック関数公開用
 				switch (input.type) {
 					case 'checkbox':
 					input.checked = config[id];
-					input.onchange = id == 's' || id == 'v' ?
-						activate : oncheck;
+					input.onclick = oncheck;
 					break;
 				}
 				break;
@@ -315,6 +303,39 @@ var jsont; // JSONPコールバック関数公開用
 			}
 			inputs[id] = input;
 		}
+	}
+	
+	function alt(altKey) {
+		pref.className = altKey ? 'alt' : '';
+	}
+	
+	function onkeydown(event) {
+		var altKey = event.altKey;
+		alt(altKey);
+		
+		var key = String.fromCharCode(event.keyCode | 32);
+		if (key in inputs) {
+			var input = inputs[key];
+			if (input.disabled) return;
+			
+			var target = event.target;
+			var tagName = target.tagName;
+			var not = !(
+				tagName == selectTag ||
+				tagName == inputTag && target.type == 'text');
+			if (not || altKey) {
+				input.focus();
+				if (altKey) {
+					if (not) {
+						input.click();
+					}
+					return false;
+				}
+			}
+		}
+	}
+	function onkeyup(event) {
+		alt(event.altKey);
 	}
 	
 	var rs = /\s/, rb = /\\\\/g, rq = /\\"/g, re = /\\(?=\s|")/g;
@@ -409,10 +430,10 @@ var jsont; // JSONPコールバック関数公開用
 					case 'v': set('i', v); break;
 					
 					case 'q':
+					config.k = true;
 					var vs = v.split('-');
 					config.k1 = intOf(vs[0], 0);
 					config.k2 = intOf(vs[1], config.k1);
-					config.k = true;
 					break;
 					
 					case '-': custom(v); break;
@@ -468,7 +489,7 @@ var jsont; // JSONPコールバック関数公開用
 		if (params.rate != 1) {
 			hash += ' --rate=' + params.rate;
 		}
-		if (voice) {
+		if (voice != null) {
 			hash += ' --voice=' + quote(voice.voiceURI);
 		}
 		
@@ -690,12 +711,10 @@ var jsont; // JSONPコールバック関数公開用
 	
 	// 発振音
 	
-	var gain = 0.5;
-	
-	function Tone(frequency, duration, ramp) {
+	function Tone(frequency, duration, delay) {
 		this.frequency = frequency;
 		this.duration = duration;
-		this.ramp = ramp;
+		this.delay = delay;
 	}
 	var tones = [
 		[
@@ -715,27 +734,28 @@ var jsont; // JSONPコールバック関数公開用
 	
 	function play(time, tone) {
 		var end = time + tone.duration;
-		var node = context.createGain();
-		var param = node.gain;
 		var oscillator = context.createOscillator();
-		
-		param.value = gain;
-		if (tone.ramp != null) {
-			param.setValueAtTime(gain, time + tone.ramp);
-			param.linearRampToValueAtTime(0, end);
-		}
-		node.connect(destination);
 		
 		oscillator.frequency.value = tone.frequency;
 		oscillator.start(time);
 		oscillator.stop(end);
-		oscillator.connect(node);
+		
+		if (tone.delay == null) {
+			oscillator.connect(destination);
+		} else {
+			var node = context.createGain();
+			var gain = node.gain;
+			gain.setValueAtTime(1, time + tone.delay);
+			gain.linearRampToValueAtTime(0, end);
+			node.connect(destination);
+			oscillator.connect(node);
+		}
 	}
 	
 	function signal(s, timeout) {
-		if (config.s || config.x && speechSynthesis.speaking) return;
+		if (config.s) return;
 		
-		var time = context.currentTime + timeout / 1000;
+		var time = context.currentTime + timeout / 1000 - latency;
 		var tone = tones[config.f];
 		var quiet = true;
 		
@@ -760,13 +780,25 @@ var jsont; // JSONPコールバック関数公開用
 	
 	var comma = '、';
 	
+	function mute() {
+		breaker.value = 0;
+	}
+	function unmute() {
+		breaker.value = gain;
+	}
+	
 	function speak(text) {
 		var utterance = new Utterance(text);
 		utterance.lang = lang;
 		utterance.voice = voice;
 		utterance.pitch = params.pitch;
 		utterance.rate  = params.rate;
-		speechSynthesis.speak(utterance);
+		if (config.x && !config.s) {
+			utterance.onstart = mute;
+			utterance.onend   = unmute;
+			utterance.onerror = unmute;
+		}
+		synthesis.speak(utterance);
 	}
 	
 	function about(secs) {
@@ -817,7 +849,7 @@ var jsont; // JSONPコールバック関数公開用
 	}
 	
 	function announce(s) {
-		if (config.v || speechSynthesis.speaking) return;
+		if (config.v || synthesis.speaking) return;
 		var p = -s % config.i, n = config.i + p;
 		
 		if (n == 8) {
@@ -918,9 +950,7 @@ var jsont; // JSONPコールバック関数公開用
 		// メイン画面
 		
 		var main = $.getElementById('main');
-		
 		titleText = $.getElementById('title').firstChild;
-		
 		h12 = $.getElementById('h12');
 		
 		// 時間表示 TextNode取得
@@ -948,24 +978,30 @@ var jsont; // JSONPコールバック関数公開用
 		}
 		log.removeChild(log.firstChild);
 		
-		// 設定取得
+		
+		var noSS = synthesis == null;
 		
 		select = $.getElementById('voice');
-		select.onchange = onchange;
-		
-		if (speechSynthesis) {
-			speechSynthesis.onvoiceschanged = onvoiceschanged;
-			speechSynthesis.onvoiceschanged();
+		if (noSS) {
+			$.getElementById('params').className = dClass;
+			select.disabled = true;
+		} else {
+			synthesis.onvoiceschanged = onvoiceschanged;
+			synthesis.onvoiceschanged();
+			
+			select.onchange = onchange;
 		}
 		
 		var id;
 		for (id in params) {
-			bind(id);
+			bind(id, noSS);
 		}
 		
 		for (id in config) {
 			input(id);
 		}
+		d('s', AudioContext == null);
+		d('v', noSS);
 		disable();
 		
 		$.getElementById('help').onclick = help;
