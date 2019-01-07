@@ -36,7 +36,8 @@ var jsont; // JSONPコールバック関数公開用
 	// 設定
 	
 	// 表示更新間隔
-	var interval, fps = 24;
+	var interval = Math.ceil(1000 / 24);
+	while (!(interval % 2 && interval % 5)) { interval++; }
 	
 	// 時刻取得タイムアウト
 	var period = 1000;
@@ -70,6 +71,7 @@ var jsont; // JSONPコールバック関数公開用
 	var pref; // #pref要素
 	var refetch;            // #refetch要素 再取得ボタン
 	var diffText, lastText; // 補正, 最終更新 TextNode
+	var lis = [];           // 時刻補正ログ li要素[]
 	var logTexts = [];      // 時刻補正ログ TextNode[]
 	
 	var select;
@@ -915,13 +917,7 @@ var jsont; // JSONPコールバック関数公開用
 	
 	// 初期化
 	
-	var lis = []; // 時刻補正ログ li要素
-	(function () {
-		var ms = Math.ceil(1000 / fps), r = ms % 10, j = 1;
-		while (j < r || j == 5) j += 2;
-		interval = ms - r + j;
-		
-		var url = (location.protocol == https ? https : http) + '//';
+	(function (url) {
 		for (i = 0; i < length; i++) {
 			var id = ids[i];
 			servers[i] = url + id + '/cgi-bin/jsont?';
@@ -934,7 +930,7 @@ var jsont; // JSONPコールバック関数公開用
 			lis[i] = li;
 			logTexts[i] = logText;
 		}
-	})();
+	})((location.protocol == https ? https : http) + '//');
 	
 	function init() {
 		start(); // サーバ時刻取得開始
