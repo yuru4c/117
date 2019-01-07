@@ -917,20 +917,20 @@ var jsont; // JSONPコールバック関数公開用
 	
 	// 初期化
 	
-	(function (url) {
-		for (i = 0; i < length; i++) {
-			var id = ids[i];
-			servers[i] = url + id + '/cgi-bin/jsont?';
-			
-			var li = $.createElement('li');
-			var logText = $.createTextNode('―'); // 書き換え用TextNode
-			li.appendChild($.createTextNode(id + ': '));
-			li.appendChild(logText);
-			
-			lis[i] = li;
-			logTexts[i] = logText;
-		}
-	})((location.protocol == https ? https : http) + '//');
+	var url = (location.protocol == https ? https : http) + '//';
+	
+	for (i = 0; i < length; i++) {
+		var id = ids[i];
+		servers[i] = url + id + '/cgi-bin/jsont?';
+		
+		var li = $.createElement('li');
+		var logText = $.createTextNode('―'); // 書き換え用TextNode
+		li.appendChild($.createTextNode(id + ': '));
+		li.appendChild(logText);
+		
+		lis[i] = li;
+		logTexts[i] = logText;
+	}
 	
 	load();
 	
