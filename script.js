@@ -36,7 +36,7 @@ var jsont; // JSONPコールバック関数公開用
 	// 設定
 	
 	// 表示更新間隔
-	var interval = Math.ceil((1000 / 24 - 1) / 2) * 2 + 1;
+	var interval, fps = 24;
 	
 	// 時刻取得タイムアウト
 	var period = 1000;
@@ -916,20 +916,25 @@ var jsont; // JSONPコールバック関数公開用
 	// 初期化
 	
 	var lis = []; // 時刻補正ログ li要素
-	var url = (location.protocol == https ? https : http) + '//';
-	
-	for (i = 0; i < length; i++) {
-		var id = ids[i];
-		servers[i] = url + id + '/cgi-bin/jsont?';
+	(function () {
+		var ms = Math.ceil(1000 / fps), r = ms % 10, j = 1;
+		while (j < r || j == 5) j += 2;
+		interval = ms - r + j;
 		
-		var li = $.createElement('li');
-		var logText = $.createTextNode('―'); // 書き換え用TextNode
-		li.appendChild($.createTextNode(id + ': '));
-		li.appendChild(logText);
-		
-		lis[i] = li;
-		logTexts[i] = logText;
-	}
+		var url = (location.protocol == https ? https : http) + '//';
+		for (i = 0; i < length; i++) {
+			var id = ids[i];
+			servers[i] = url + id + '/cgi-bin/jsont?';
+			
+			var li = $.createElement('li');
+			var logText = $.createTextNode('―'); // 書き換え用TextNode
+			li.appendChild($.createTextNode(id + ': '));
+			li.appendChild(logText);
+			
+			lis[i] = li;
+			logTexts[i] = logText;
+		}
+	})();
 	
 	function init() {
 		start(); // サーバ時刻取得開始
