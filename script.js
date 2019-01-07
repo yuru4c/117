@@ -565,8 +565,8 @@ var jsont; // JSONPコールバック関数公開用
 			maxL = l;
 			minU = u;
 		} else {
-			if (l > maxL) maxL = l;
-			if (u < minU) minU = u;
+			if (l > maxL) { maxL = l; }
+			if (u < minU) { minU = u; }
 		}
 		diff = half(maxL + minU);
 		
@@ -657,7 +657,7 @@ var jsont; // JSONPコールバック関数公開用
 		// ゼロ埋め
 		var padding = '';
 		for (var d = 10; d < unit; d *= 10) {
-			if (num < d) padding += '0';
+			if (num < d) { padding += '0'; }
 		}
 		textNode.data = padding + num; // 書き換え
 		
@@ -754,7 +754,6 @@ var jsont; // JSONPコールバック関数公開用
 	
 	function signal(s, timeout) {
 		if (config.s) return;
-		
 		var time = context.currentTime + timeout / 1000 - latency;
 		var tone = tones[config.f];
 		var quiet = true;
@@ -793,6 +792,7 @@ var jsont; // JSONPコールバック関数公開用
 		utterance.voice = voice;
 		utterance.pitch = params.pitch;
 		utterance.rate  = params.rate;
+		
 		if (config.x && !config.s) {
 			utterance.onstart = mute;
 			utterance.onend   = unmute;
