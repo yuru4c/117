@@ -932,8 +932,6 @@ var jsont; // JSONPコールバック関数公開用
 		logTexts[i] = logText;
 	}
 	
-	load();
-	
 	function init() {
 		start(); // サーバ時刻取得開始
 		tick();
@@ -944,6 +942,8 @@ var jsont; // JSONPコールバック関数公開用
 	
 	$.onreadystatechange = function () {
 		this.onreadystatechange = null;
+		
+		load();
 		
 		// head 要素取得
 		head = $.getElementsByTagName('head')[0];
