@@ -267,7 +267,7 @@ var jsont; // JSONPコールバック関数公開用
 			
 			case 'v':
 			if (!this.checked) {
-				speak('');
+				speak(' ');
 			}
 			break;
 			
