@@ -77,7 +77,7 @@ var jsont; // JSONPコールバック関数公開用
 	var select;
 	var voiceURI;
 	var voices = []; var voice;
-	var params = {pitch: 1, rate: 1};
+	var params = {pitch: null, rate: null, volume: null};
 	
 	// 文字列
 	function dstr(d) { // 符号反転
@@ -144,28 +144,39 @@ var jsont; // JSONPコールバック関数公開用
 		setVoice();
 	}
 	
-	function toFixed(number) {
-		return number.toFixed(1);
-	}
-	
 	function bind(id, disabled) {
 		var param = params[id];
 		var input = $.getElementById(id);
+		var radio = $.getElementById(id + '-s');
 		var range = $.getElementById(id + '-r');
 		
-		input.value = input.placeholder = toFixed(param);
-		range.value = range.defaultValue = param;
+		var value = +range.defaultValue;
+		var step  = +range.step;
+		var digits = step < 1 ?
+			-Math.floor(Math.log(step) / Math.LN10) : 0;
+		
+		if (param == null) {
+			params[id] = param = value;
+		}
+		input.value = param.toFixed(digits);
+		range.value = param;
 		
 		if (disabled) {
 			input.disabled = true;
+			radio.disabled = true;
 			range.disabled = true;
 			return;
 		}
 		
+		input.placeholder = value.toFixed(digits);
+		
+		input.onfocus = function () {
+			radio.checked = true;
+		};
 		input.oninput = function () {
 			if (!this.value || isNaN(this.value)) {
-				range.value = param;
-				params[id]  = param;
+				range.value = value;
+				params[id]  = value;
 				return;
 			}
 			range.value = this.value;
@@ -173,15 +184,15 @@ var jsont; // JSONPコールバック関数公開用
 		};
 		input.onchange = function () {
 			this.oninput();
-			this.value = toFixed(params[id]);
+			this.value = params[id].toFixed(digits);
 		};
 		
 		range.oninput = function () {
-			input.value = toFixed(+this.value);
+			input.value = (+this.value).toFixed(digits);
 		};
 		range.onchange = function () {
 			var value = +this.value;
-			input.value = toFixed(value);
+			input.value = value.toFixed(digits);
 			params[id] = value;
 		};
 	}
@@ -402,7 +413,7 @@ var jsont; // JSONPコールバック関数公開用
 			voiceURI = value;
 			break;
 			
-			case 'pitch': case 'rate':
+			case 'volume': case 'pitch': case 'rate':
 			var f = parseFloat(value);
 			if (isNaN(f)) break;
 			params[key] = f;
@@ -485,6 +496,9 @@ var jsont; // JSONPコールバック関数公開用
 			hash += ' -q' + config.k1 + '-' + config.k2;
 		}
 		
+		if (params.volume != 1) {
+			hash += ' --volume=' + params.volume;
+		}
 		if (params.pitch != 1) {
 			hash += ' --pitch=' + params.pitch;
 		}
@@ -790,10 +804,11 @@ var jsont; // JSONPコールバック関数公開用
 	
 	function speak(text) {
 		var utterance = new Utterance(text);
-		utterance.lang = lang;
-		utterance.voice = voice;
-		utterance.pitch = params.pitch;
-		utterance.rate  = params.rate;
+		utterance.lang   = lang;
+		utterance.voice  = voice;
+		utterance.pitch  = params.pitch;
+		utterance.rate   = params.rate;
+		utterance.volume = params.volume;
 		
 		if (config.x && !config.s) {
 			utterance.onstart = mute;

@@ -45,14 +45,8 @@ body {
 .pref input, .pref select {
 	font-size: 1em;
 }
-.pref label, .pref span, .nowrap {
+.nowrap {
 	white-space: nowrap;
-}
-.float {
-	float: left;
-}
-.clear {
-	clear: both;
 }
 .right {
 	text-align: right;
@@ -68,37 +62,36 @@ body {
 #params {
 	line-height: 2.5;
 }
-#params span {
-	display: block;
-}
-#params .float {
-	min-width: 50%;
-}
 #params label {
+	padding-right: 0.5em;
+	white-space: nowrap;
+}
+#params label, #params span,
+input[name="param"]:checked + input {
 	display: inline-block;
 }
-#params input[type="range"] {
+input[name="param"] + input, input[name="param"] {
+	display: none;
 	padding: 0;
 	width: 12em;
 	vertical-align: middle;
 }
 
-.container {
+.container, .container fieldset {
 	margin-top: 0.625em;
 }
-.container .float {
+.float {
+	float: left;
 	margin-right: 0.75em;
 }
-.container .float + .float {
+.float + .float {
 	margin-right: 0;
-}
-.container fieldset {
-	margin-top: 0.625em;
 }
 
 .container label, .container span {
 	display: block;
 	line-height: 1.5;
+	white-space: nowrap;
 }
 .container kbd {
 	font: inherit;
@@ -136,6 +129,7 @@ body {
 }
 
 .footer {
+	clear: both;
 	line-height: 3;
 }
 .footer input {

@@ -5,9 +5,9 @@
 	<meta name="viewport" content="width=device-width, initial-scale=1">
 	<meta name="format-detection" content="date=no">
 	
-	<title>オンライン 117 ver. 20190107</title>
+	<title>オンライン 117 ver. 20190108</title>
 	
-	<link rel="stylesheet" href="style.css?20190107">
+	<link rel="stylesheet" href="style.css?20190108">
 </head>
 <body>
 	
@@ -46,29 +46,34 @@
 			<ol id="log"><li></li></ol>
 		</div>
 		<div id="params">
-			<span>
+			<div>
 				<label>
 					声:
-					<select id="voice">
-						<option disabled></option>
-					</select>
+					<select id="voice"><option disabled></option></select>
+				</label>
+			</div>
+			<span>
+				<label for="volume-s">
+					音量:
+					<input class="right" size="4" id="volume">
+					<input type="radio" name="param" value="volume" id="volume-s" checked>
+					<input type="range" value="1" step="0.05" min="0" max="1" id="volume-r">
 				</label>
 			</span>
-			<span class="float">
-				<label>
+			<span>
+				<label for="pitch-s">
 					音程:
 					<input class="right" size="4" id="pitch">
+					<input type="radio" name="param" value="pitch" id="pitch-s">
+					<input type="range" value="1" step="0.1" min="0" max="2" id="pitch-r">
 				</label>
-				<input type="range" step="0.1" min="0" max="2" id="pitch-r">
-			</span>
-			<span class="float">
-				<label>
+				<label for="rate-s">
 					速度:
 					<input class="right" size="4" id="rate">
+					<input type="radio" name="param" value="rate" id="rate-s">
+					<input type="range" value="1" step="0.1" min="0.1" max="10" id="rate-r">
 				</label>
-				<input type="range" step="0.1" min="0.1" max="10" id="rate-r">
 			</span>
-			<span class="clear"></span>
 		</div>
 		<div class="container">
 			<div class="float">
@@ -299,13 +304,13 @@
 					</label>
 				</fieldset>
 			</div>
-			<div class="footer clear right">
+			<div class="footer right">
 				<input type="button" value="ヘルプ" id="help">
 				<input type="button" value="設定を保存" id="save">
 			</div>
 		</div>
 	</div></div>
 	
-	<script type="text/javascript" src="script.js?20190107"></script>
+	<script type="text/javascript" src="script.js?20190108"></script>
 </body>
 </html>
