@@ -527,7 +527,7 @@ var jsont; // JSONPコールバック関数公開用
 	
 	var diff = 0; // クライアント時刻 - サーバ時刻 (ミリ秒)
 	
-	var leap, step;
+	var leap, step, leaps;
 	var leaping, stepped = false;
 	
 	var ids = [
@@ -551,7 +551,7 @@ var jsont; // JSONPコールバック関数公開用
 	function getNow() {
 		var now = new Date() - diff;
 		if (leaping) {
-			if (!stepped && now >= (step < 0 ? leap + step : leap)) {
+			if (!stepped && now >= leaps) {
 				diff += step;
 				now  -= step;
 				result();
@@ -596,8 +596,11 @@ var jsont; // JSONPコールバック関数公開用
 		
 		leap = json.next * 1000;
 		step = json.step * 1000;
-		leaping = step && leap > serverTime;
+		leaping = leap > serverTime;
 		stepped = false;
+		if (leaping) {
+			leaps = step < 0 ? leap + step : leap;
+		}
 		
 		// ログ書き換え
 		log(i, rstr(half(l + u), u - l) + ' ⇒ ' +
