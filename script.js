@@ -98,7 +98,8 @@ var jsont; // JSONPコールバック関数公開用
 	function log(i, str) {
 		logTexts[i].data = str;
 	}
-	function detail() {
+	
+	function onclick() {
 		ntp.className = this.checked ? '' : 'hide';
 	}
 	
@@ -645,7 +646,7 @@ var jsont; // JSONPコールバック関数公開用
 				
 				date.setTime(leap);
 				leapText.data = (step > 0 ? '+' : '') +
-					step / 1000 + '  ' + date.toLocaleString();
+					step / 1000 + ' @ ' + date.toLocaleString();
 			}
 			
 			refetch.disabled = false;
@@ -1006,12 +1007,12 @@ var jsont; // JSONPコールバック関数公開用
 		refetch.onclick = start;
 		diffText = $.getElementById('diff').firstChild;
 		
+		var details = $.getElementById('details');
+		details.onclick = onclick;
+		details.onclick();
+		
 		leapText = $.getElementById('leap').lastChild;
 		lastText = $.getElementById('last').firstChild;
-		
-		var toggle = $.getElementById('toggle');
-		toggle.onclick = detail;
-		toggle.onclick();
 		
 		// 時刻補正ログ
 		var log = $.getElementById('log');
