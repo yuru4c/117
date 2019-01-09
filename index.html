@@ -5,9 +5,9 @@
 	<meta name="viewport" content="width=device-width, initial-scale=1">
 	<meta name="format-detection" content="date=no">
 	
-	<title>オンライン 117 ver. 20190108</title>
+	<title>オンライン 117 ver. 20190109</title>
 	
-	<link rel="stylesheet" href="style.css?20190108">
+	<link rel="stylesheet" href="style.css?20190109">
 </head>
 <body>
 	
@@ -37,13 +37,22 @@
 	
 	<!-- 設定画面 -->
 	
-	<div id="pref"><div class="pref">
-		<div class="nowrap">
+	<div class="scroll center" id="pref"><div class="pref item">
+		<div id="ntp">
 			<label>時刻補正: </label>
-			<input type="button" value="再取得" id="refetch">
-			<span id="diff">0<!> ms</span>
-			<span id="last">(<!>未取得<!>)</span>
-			<ol id="log"><li></li></ol>
+			<input type="button" value=" 取得 " id="refetch">
+			<label class="label">
+				<span class="monospace" id="diff">0<!> ms</span>
+				<input type="checkbox" id="toggle">詳細
+			</label>
+			<div class="details">
+				<p class="message">
+					<span class="pre" id="leap">閏秒: <!>(不明)</span>
+					<span class="pre" id="last">(未取得)</span>
+					<span class="clear"></span>
+				</p>
+				<ol class="scroll monospace" id="log"><li></li></ol>
+			</div>
 		</div>
 		<div id="params">
 			<div>
@@ -75,8 +84,8 @@
 				</label>
 			</span>
 		</div>
-		<div class="container">
-			<div class="float">
+		<div class="container center">
+			<div class="item">
 				<fieldset>
 					<legend>発振音</legend>
 					<label>
@@ -204,8 +213,8 @@
 							</select>
 						</span>
 					</div>
-					<div class="holidays nowrap">
-						<span>定休日(<kbd>H</kbd>): </span>
+					<div class="holidays">
+						<span class="pre">定休日(<kbd>H</kbd>): </span>
 						<label><input type="checkbox" id="h0">日</label>
 						<label><input type="checkbox" id="h1">月</label>
 						<label><input type="checkbox" id="h2">火</label>
@@ -216,7 +225,7 @@
 					</div>
 				</fieldset>
 			</div>
-			<div class="float">
+			<div class="item">
 				<fieldset>
 					<legend>アナウンス</legend>
 					<label>
@@ -304,13 +313,13 @@
 					</label>
 				</fieldset>
 			</div>
-			<div class="footer right">
+			<div class="footer">
 				<input type="button" value="ヘルプ" id="help">
 				<input type="button" value="設定を保存" id="save">
 			</div>
 		</div>
 	</div></div>
 	
-	<script type="text/javascript" src="script.js?20190108"></script>
+	<script type="text/javascript" src="script.js?20190109"></script>
 </body>
 </html>

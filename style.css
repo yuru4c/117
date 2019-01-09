@@ -33,38 +33,79 @@ body {
 
 /* 設定画面 */
 
-#pref {
-	margin: 3em 0 1em;
-	overflow: auto;
+.scroll {
+	overflow-x: auto;
+	overflow-y: hidden;
 }
-.pref {
-	display: table;
-	margin: auto;
-	font-size: smaller;
+.monospace {
+	font-family: monospace, sans-serif;
 }
-.pref input, .pref select {
-	font-size: 1em;
+.pre {
+	white-space: pre;
 }
-.nowrap {
-	white-space: nowrap;
+.clear {
+	display: block;
+	clear: both;
 }
-.right {
+.label, .item {
+	display: inline-block;
+}
+.item {
+	vertical-align: top;
+	text-align: left;
+}
+.center {
+	text-align: center;
+}
+.right, .select, .footer {
 	text-align: right;
 }
 .disabled {
 	color: gray;
 }
 
-#diff, #log {
-	font-family: monospace, sans-serif;
+#pref {
+	margin: 3em 0 1em;
+}
+.pref {
+	max-width: 100%;
+	font-size: smaller;
+}
+.pref input, .pref select {
+	font-size: 1em;
+}
+.pref kbd {
+	font: inherit;
+}
+.alt kbd {
+	text-decoration: underline;
+}
+
+#ntp {
+	margin-bottom: 1em;
+	white-space: nowrap;
+}
+.hide .details {
+	display: none;
+}
+.message {
+	margin: 0.5em 1em;
+	line-height: 1.5;
+	white-space: normal;
+}
+#last {
+	float: right;
+	margin-left: 0.5em;
 }
 
 #params {
 	line-height: 2.5;
 }
 #params label {
-	padding-right: 0.5em;
 	white-space: nowrap;
+}
+#params span label {
+	padding-right: 0.5em;
 }
 #params label, #params span,
 input[name="param"]:checked + input {
@@ -80,29 +121,14 @@ input[name="param"] + input, input[name="param"] {
 .container, .container fieldset {
 	margin-top: 0.625em;
 }
-.float {
-	float: left;
-	margin-right: 0.75em;
+.container fieldset {
+	white-space: nowrap;
 }
-.float + .float {
-	margin-right: 0;
-}
-
 .container label, .container span {
 	display: block;
 	line-height: 1.5;
-	white-space: nowrap;
-}
-.container kbd {
-	font: inherit;
-}
-.alt kbd {
-	text-decoration: underline;
 }
 
-.select {
-	text-align: right;
-}
 .select label, .select span {
 	line-height: 2;
 }
@@ -118,7 +144,6 @@ input[name="param"] + input, input[name="param"] {
 }
 .holidays span {
 	float: left;
-	white-space: pre;
 }
 .holidays label {
 	display: inline-block;
@@ -129,7 +154,6 @@ input[name="param"] + input, input[name="param"] {
 }
 
 .footer {
-	clear: both;
 	line-height: 3;
 }
 .footer input {

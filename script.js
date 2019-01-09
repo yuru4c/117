@@ -40,7 +40,7 @@ var jsont; // JSONPコールバック関数公開用
 	while (!(interval % 2 && interval % 5)) { interval++; }
 	
 	// 時刻取得タイムアウト
-	var period = 1000;
+	var period = 3000;
 	
 	var gain = Math.SQRT1_2 / 2;
 	
@@ -69,10 +69,14 @@ var jsont; // JSONPコールバック関数公開用
 	// 設定画面
 	
 	var pref; // #pref要素
-	var refetch;            // #refetch要素 再取得ボタン
-	var diffText, lastText; // 補正, 最終更新 TextNode
-	var lis = [];           // 時刻補正ログ li要素[]
-	var logTexts = [];      // 時刻補正ログ TextNode[]
+	var prefClass;
+	
+	var ntp;  // #ntp要素
+	var refetch;  // #refetch要素 再取得ボタン
+	var diffText; // 補正 TextNode
+	var leapText, lastText; // 閏秒, 最終更新 TextNode
+	var lis = [];      // 時刻補正ログ li要素[]
+	var logTexts = []; // 時刻補正ログ TextNode[]
 	
 	var select;
 	var voiceURI;
@@ -93,6 +97,9 @@ var jsont; // JSONPコールバック関数公開用
 	}
 	function log(i, str) {
 		logTexts[i].data = str;
+	}
+	function detail() {
+		ntp.className = this.checked ? '' : 'hide';
 	}
 	
 	function setVoice() {
@@ -151,9 +158,9 @@ var jsont; // JSONPコールバック関数公開用
 		var range = $.getElementById(id + '-r');
 		
 		var value = +range.defaultValue;
-		var step  = +range.step;
-		var digits = step < 1 ?
-			-Math.floor(Math.log(step) / Math.LN10) : 0;
+		var step = range.step;
+		var point = step ? step.indexOf('.') : -1;
+		var digits = point == -1 ? 0 : step.length - point - 1;
 		
 		if (param == null) {
 			params[id] = param = value;
@@ -319,7 +326,7 @@ var jsont; // JSONPコールバック関数公開用
 	}
 	
 	function alt(altKey) {
-		pref.className = altKey ? 'alt' : '';
+		pref.className = altKey ? prefClass + ' alt' : prefClass;
 	}
 	
 	function onkeydown(event) {
@@ -520,7 +527,8 @@ var jsont; // JSONPコールバック関数公開用
 	
 	var diff = 0; // クライアント時刻 - サーバ時刻 (ミリ秒)
 	
-	var leap, step; var stepped = false;
+	var leap, step;
+	var leaping, stepped = false;
 	
 	var ids = [
 		'ntp-a1.nict.go.jp',
@@ -542,7 +550,7 @@ var jsont; // JSONPコールバック関数公開用
 	// 補正された現在時刻を取得
 	function getNow() {
 		var now = new Date() - diff;
-		if (step) {
+		if (leaping) {
 			if (!stepped && now >= (step < 0 ? leap + step : leap)) {
 				diff += step;
 				now  -= step;
@@ -550,7 +558,7 @@ var jsont; // JSONPコールバック関数公開用
 				stepped = true;
 			}
 			if (stepped && now >= leap) {
-				step = 0;
+				leaping = false;
 				stepped = false;
 			}
 		}
@@ -587,7 +595,8 @@ var jsont; // JSONPコールバック関数公開用
 		diff = half(maxL + minU);
 		
 		leap = json.next * 1000;
-		step = leap < serverTime ? 0 : json.step * 1000;
+		step = json.step * 1000;
+		leaping = step && leap > serverTime;
 		stepped = false;
 		
 		// ログ書き換え
@@ -630,8 +639,14 @@ var jsont; // JSONPコールバック関数公開用
 				result();
 				date.setTime(getNow());
 				lastText.data = date.toLocaleString();
+				
+				date.setTime(leap);
+				leapText.data = (step > 0 ? '+' : '') +
+					step / 1000 + '  ' + date.toLocaleString();
 			}
+			
 			refetch.disabled = false;
+			refetch.value = '再取得';
 			
 			running = false;
 		}
@@ -644,6 +659,7 @@ var jsont; // JSONPコールバック関数公開用
 		
 		// 表示更新
 		refetch.disabled = true;
+		refetch.value = '取得中';
 		for (var j = 1; j < length; j++) {
 			log(j, '保留');
 		}
@@ -909,7 +925,7 @@ var jsont; // JSONPコールバック関数公開用
 		var now = getNow(), timeout = 1000 - now % 1000;
 		window.setTimeout(tick, timeout);
 		var next = now + timeout;
-		if (step && !stepped) {
+		if (leaping && !stepped) {
 			if (next > (step < 0 ? leap : leap + step) - 8000) {
 				next -= step;
 			}
@@ -979,13 +995,20 @@ var jsont; // JSONPコールバック関数公開用
 		// 設定画面
 		
 		pref = $.getElementById('pref');
+		prefClass = pref.className;
 		
 		// 時刻補正
+		ntp = $.getElementById('ntp');
 		refetch = $.getElementById('refetch');
 		refetch.onclick = start;
-		
 		diffText = $.getElementById('diff').firstChild;
-		lastText = $.getElementById('last').childNodes[2];
+		
+		leapText = $.getElementById('leap').lastChild;
+		lastText = $.getElementById('last').firstChild;
+		
+		var toggle = $.getElementById('toggle');
+		toggle.onclick = detail;
+		toggle.onclick();
 		
 		// 時刻補正ログ
 		var log = $.getElementById('log');
@@ -993,7 +1016,6 @@ var jsont; // JSONPコールバック関数公開用
 			log.appendChild(lis[i]);
 		}
 		log.removeChild(log.firstChild);
-		
 		
 		var noSS = synthesis == null;
 		
