@@ -71,7 +71,7 @@ var jsont; // JSONPコールバック関数公開用
 	var pref; // #pref要素
 	var prefClass;
 	
-	var ntp;  // #ntp要素
+	var ntp; // #ntp要素
 	var refetch;  // #refetch要素 再取得ボタン
 	var diffText; // 補正 TextNode
 	var leapText, lastText; // 閏秒, 最終更新 TextNode
@@ -119,26 +119,26 @@ var jsont; // JSONPコールバック関数公開用
 		for (i = 0; i < vs.length; i++) {
 			var v = vs[i];
 			var lang = v.lang;
-			if (!lang || langRe.test(lang)) {
-				var l = voices.push(v);
-				var uri = v.voiceURI;
-				var def = v['default'];
-				
-				var option = $.createElement('option');
-				option.appendChild($.createTextNode(
-					def ? v.name + ' （既定値）' : v.name));
-				select.add(option);
-				
-				if (voiceURI != null && uri == voiceURI) {
-					restore = true;
-					sel = l;
-					voiceURI = null;
-				}
-				if (restore) continue;
-				restore = voice != null && uri == voice.voiceURI;
-				if (restore || !sel && def) {
-					sel = l;
-				}
+			if (lang && !langRe.test(lang)) continue;
+			
+			var l = voices.push(v);
+			var uri = v.voiceURI;
+			var def = v['default'];
+			
+			var option = $.createElement('option');
+			option.appendChild($.createTextNode(
+				def ? v.name + ' （既定値）' : v.name));
+			select.add(option);
+			
+			if (voiceURI != null && uri == voiceURI) {
+				restore = true;
+				sel = l;
+				voiceURI = null;
+			}
+			if (restore) continue;
+			restore = voice != null && uri == voice.voiceURI;
+			if (restore || !sel && def) {
+				sel = l;
 			}
 		}
 		if (sel) {
@@ -152,6 +152,20 @@ var jsont; // JSONPコールバック関数公開用
 		setVoice();
 	}
 	
+	function count(str) {
+		if (str) {
+			var point = str.indexOf('.');
+			if (point != -1) {
+				return str.length - point - 1;
+			}
+		}
+		return 0;
+	}
+	function toFixed(num, digits) {
+		var str = num.toString();
+		return count(str) < digits ? num.toFixed(digits) : str;
+	}
+	
 	function bind(id, disabled) {
 		var param = params[id];
 		var input = $.getElementById(id);
@@ -159,14 +173,12 @@ var jsont; // JSONPコールバック関数公開用
 		var range = $.getElementById(id + '-r');
 		
 		var value = +range.defaultValue;
-		var step = range.step;
-		var point = step ? step.indexOf('.') : -1;
-		var digits = point == -1 ? 0 : step.length - point - 1;
+		var digits = count(range.step);
 		
 		if (param == null) {
 			params[id] = param = value;
 		}
-		input.value = param.toFixed(digits);
+		input.value = toFixed(param, digits);
 		range.value = param;
 		
 		if (disabled) {
@@ -175,33 +187,40 @@ var jsont; // JSONPコールバック関数公開用
 			range.disabled = true;
 			return;
 		}
+		var min = +range.min, max = +range.max;
+		var select = function () {
+			input.select();
+		};
 		
 		input.placeholder = value.toFixed(digits);
-		
 		input.onfocus = function () {
 			radio.checked = true;
+			window.setTimeout(select);
 		};
+		
 		input.oninput = function () {
-			if (!this.value || isNaN(this.value)) {
-				range.value = value;
-				params[id]  = value;
-				return;
+			param = parseFloat(this.value);
+			if (isNaN(param)) {
+				param = value;
+			} else {
+				if (param < min) { param = min; }
+				if (param > max) { param = max; }
 			}
-			range.value = this.value;
-			params[id] = +range.value;
+			range.value = param;
+			params[id] = param;
 		};
 		input.onchange = function () {
 			this.oninput();
-			this.value = params[id].toFixed(digits);
+			this.value = toFixed(param, digits);
 		};
 		
 		range.oninput = function () {
-			input.value = (+this.value).toFixed(digits);
+			param = +this.value;
+			input.value = param.toFixed(digits);
 		};
 		range.onchange = function () {
-			var value = +this.value;
-			input.value = value.toFixed(digits);
-			params[id] = value;
+			this.oninput();
+			params[id] = param;
 		};
 	}
 	
@@ -403,8 +422,8 @@ var jsont; // JSONPコールバック関数公開用
 		}
 	}
 	function set(id, arg) {
-		var i = parseInt(arg, 10);
-		config[id] = isNaN(i) ? 0 : i;
+		var value = parseInt(arg, 10);
+		config[id] = isNaN(value) ? 0 : value;
 	}
 	
 	function intOf(str, defaultValue) {
@@ -431,40 +450,41 @@ var jsont; // JSONPコールバック関数公開用
 	
 	function load() {
 		var hash = location.hash;
-		if (hash) {
-			var argv = parse(decode(hash.substr(1)));
-			var argc = argv.length;
-			for (var i = 0; i < argc; i++) {
-				var arg = argv[i];
-				if (arg.charAt(0) != '-') continue;
-				var c = arg.charAt(1);
-				var v = arg.substr(2);
-				switch (c) {
-					case 'x': sets(xids, v); break;
-					case 'w': sets(wids, v); break;
-					
-					case 'f': case 'a': case 'n': case 'p':
-					set(c, v);
-					break;
-					
-					case 's': set('d', v); break;
-					case 'v': set('i', v); break;
-					
-					case 'q':
-					config.k = true;
-					var vs = v.split('-');
-					config.k1 = intOf(vs[0], 0);
-					config.k2 = intOf(vs[1], config.k1);
-					break;
-					
-					case '-': custom(v); break;
-				}
-			}
-		} else {
+		if (!hash) {
 			config.f = 2;
 			config.m = true;
 			config.n = 1;
 			config.z = true;
+			return;
+		}
+		var argv = parse(decode(hash.substr(1)));
+		var argc = argv.length;
+		for (var i = 0; i < argc; i++) {
+			var arg = argv[i];
+			if (arg.charAt(0) != '-') continue;
+			
+			var c = arg.charAt(1);
+			var v = arg.substr(2);
+			switch (c) {
+				case 'x': sets(xids, v); break;
+				case 'w': sets(wids, v); break;
+				
+				case 'f': case 'a': case 'n': case 'p':
+				set(c, v);
+				break;
+				
+				case 's': set('d', v); break;
+				case 'v': set('i', v); break;
+				
+				case 'q':
+				config.k = true;
+				var vs = v.split('-');
+				config.k1 = intOf(vs[0], 0);
+				config.k2 = intOf(vs[1], config.k1);
+				break;
+				
+				case '-': custom(v); break;
+			}
 		}
 	}
 	
@@ -635,7 +655,7 @@ var jsont; // JSONPコールバック関数公開用
 		if (i < length) {
 			log(i, '取得中...');
 			
-			window.setTimeout(send, 0); // リクエスト
+			window.setTimeout(send); // リクエスト
 			timeoutId = window.setTimeout(timeout, period);
 		} else { // 完了
 			// 表示更新
@@ -796,8 +816,8 @@ var jsont; // JSONPコールバック関数公開用
 		
 		if (s % config.d) {
 			if (!config.y) {
-				var d30 = 30 - s % 30;
-				if (!(d30 > config.a || (s + d30) % config.d)) {
+				var r30 = 30 - s % 30;
+				if (!(r30 > config.a || (s + r30) % config.d)) {
 					play(time, tone[0]);
 					quiet = false;
 				}
@@ -926,8 +946,9 @@ var jsont; // JSONPコールバック関数公開用
 	// 再生
 	
 	function tick() {
-		var now = getNow(), timeout = 1000 - now % 1000;
+		var now = getNow(), timeout = 1500 - ((now + 500) % 1000 || 1000);
 		window.setTimeout(tick, timeout);
+		
 		var next = now + timeout;
 		if (leaping && !stepped) {
 			if (next > (step < 0 ? leap : leap + step) - 8000) {
