@@ -139,10 +139,10 @@ input[name="param"] + input, input[name="param"] {
 .select .small {
 	min-width: 7em;
 }
-
-.holidays {
-	margin-top: 0.5em;
+.select + * {
+	margin-top: 0.25em;
 }
+
 .holidays span {
 	float: left;
 }
