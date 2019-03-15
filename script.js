@@ -110,13 +110,13 @@ var jsont; // JSONPコールバック関数公開用
 	function onvoiceschanged() {
 		var vs = this.getVoices();
 		var restore = false;
-		var sel = 0, i;
+		var sel = 0, length = vs.length, i;
 		
 		voices.length = 0;
 		for (i = select.length - 1; i >= 0; i--) {
 			select.remove(i);
 		}
-		for (i = 0; i < vs.length; i++) {
+		for (i = 0; i < length; i++) {
 			var v = vs[i];
 			var lang = v.lang;
 			if (lang && !langRe.test(lang)) continue;
@@ -989,6 +989,8 @@ var jsont; // JSONPコールバック関数公開用
 	}
 	
 	function init() {
+		$.onreadystatechange = null;
+		
 		start(); // サーバ時刻取得開始
 		tick();
 		
@@ -997,8 +999,6 @@ var jsont; // JSONPコールバック関数公開用
 	}
 	
 	$.onreadystatechange = function () {
-		this.onreadystatechange = null;
-		
 		load();
 		
 		// head 要素取得
@@ -1073,11 +1073,10 @@ var jsont; // JSONPコールバック関数公開用
 		$.onkeydown = onkeydown;
 		$.onkeyup   = onkeyup;
 		
-		
 		if (this.readyState == 'complete') {
 			init();
 		} else {
-			window.onload = init;
+			this.onreadystatechange = init;
 		}
 	};
 })(window, document);
