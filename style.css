@@ -4,6 +4,9 @@ body {
 	   -moz-text-size-adjust: none;
 	    -ms-text-size-adjust: none;
 }
+tt, .monospace {
+	font-family: monospace, sans-serif;
+}
 
 /* メイン画面 */
 
@@ -21,14 +24,14 @@ body {
 	font-size: 2em;
 }
 #main tt {
-	font-size: 4em;
+	font-size: 3.25em;
 }
 
 #h12.h24, #h12.am .pm, #h12.pm .am {
 	display: none;
 }
 #main .ms tt {
-	font-size: 3em;
+	font-size: 2.4375em;
 }
 
 /* 設定画面 */
@@ -36,9 +39,6 @@ body {
 .scroll {
 	overflow-x: auto;
 	overflow-y: hidden;
-}
-.monospace {
-	font-family: monospace, sans-serif;
 }
 .pre {
 	white-space: pre;
@@ -54,13 +54,16 @@ body {
 	vertical-align: top;
 	text-align: left;
 }
+.size {
+	box-sizing: border-box;
+}
 .center {
 	text-align: center;
 }
 .right, .select, .footer {
 	text-align: right;
 }
-.disabled {
+.disabled, .note {
 	color: gray;
 }
 
@@ -80,13 +83,13 @@ body {
 .alt kbd {
 	text-decoration: underline;
 }
+.hide .hidden {
+	display: none;
+}
 
-#ntp {
+.ntp {
 	margin-bottom: 1em;
 	white-space: nowrap;
-}
-.hide .details {
-	display: none;
 }
 .message {
 	margin: 0.5em 1em;
@@ -96,27 +99,7 @@ body {
 }
 #last {
 	float: right;
-	margin-left: 1.5em;
-}
-
-#params {
-	line-height: 2.25;
-}
-#params label {
-	white-space: nowrap;
-}
-#params span label {
-	padding-right: 0.5em;
-}
-#params label, #params span,
-input[name="param"]:checked + input {
-	display: inline-block;
-}
-input[name="param"] + input, input[name="param"] {
-	display: none;
-	padding: 0;
-	width: 12em;
-	vertical-align: middle;
+	margin-left: 1.2em;
 }
 
 .container, .container fieldset {
@@ -125,7 +108,8 @@ input[name="param"] + input, input[name="param"] {
 .container fieldset {
 	white-space: nowrap;
 }
-.container label, .container span {
+.container label, .container span,
+.container .note {
 	display: block;
 	line-height: 1.5;
 }
@@ -133,11 +117,11 @@ input[name="param"] + input, input[name="param"] {
 .select label, .select span {
 	line-height: 2;
 }
-.select select {
-	min-width: 14em;
+.select select, .select input, .box {
+	width: 14em;
 }
 .select .small {
-	min-width: 7em;
+	width: 7em;
 }
 .select + * {
 	margin-top: 0.25em;
@@ -154,9 +138,22 @@ input[name="param"] + input, input[name="param"] {
 	display: block;
 }
 
+.container .box {
+	display: inline-block;
+	text-align: left;
+}
+.box input {
+	width: 3.5em;
+}
+.box input + input {
+	padding: 0;
+	width: 9em;
+	vertical-align: middle;
+}
+
 .footer {
 	line-height: 3;
 }
 .footer input {
-	min-width: 7em;
+	width: 7em;
 }

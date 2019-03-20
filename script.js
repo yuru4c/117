@@ -14,6 +14,7 @@ var jsont; // JSONPコールバック関数公開用
 	
 	var decode = this.decodeURIComponent;
 	
+	// ベンダー プレフィックス
 	var webkit = 'webkit', moz = 'moz';
 	function prefix(object, key, vendors) {
 		if (key in object) {
@@ -33,7 +34,7 @@ var jsont; // JSONPコールバック関数公開用
 	var AudioContext = this[prefix(this, 'AudioContext', [webkit])];
 	var Utterance = this.SpeechSynthesisUtterance;
 	
-	// 設定
+	// 内部設定
 	
 	// 表示更新間隔
 	var interval = Math.ceil(1000 / 24);
@@ -47,6 +48,7 @@ var jsont; // JSONPコールバック関数公開用
 	var lang = 'ja-JP';
 	var langRe = /^ja([-_].*)?$/i;
 	
+	// 共用変数
 	
 	var date = new Date(70, 0);
 	var lag = -date;
@@ -71,17 +73,10 @@ var jsont; // JSONPコールバック関数公開用
 	var pref; // #pref要素
 	var prefClass;
 	
-	var ntp; // #ntp要素
 	var refetch;  // #refetch要素 再取得ボタン
-	var diffText; // 補正 TextNode
-	var leapText, lastText; // 閏秒, 最終更新 TextNode
+	var diffText, leapText, lastText; // 補正, 閏秒, 最終更新 TextNode
 	var lis = [];      // 時刻補正ログ li要素[]
 	var logTexts = []; // 時刻補正ログ TextNode[]
-	
-	var select;
-	var voiceURI;
-	var voices = []; var voice;
-	var params = {pitch: null, rate: null, volume: null};
 	
 	// 文字列
 	function dstr(d) { // 符号反転
@@ -99,9 +94,195 @@ var jsont; // JSONPコールバック関数公開用
 		logTexts[i].data = str;
 	}
 	
-	function onclick() {
-		ntp.className = this.checked ? '' : 'hide';
+	function toggle() {
+		this.parentNode.parentNode.className =
+			this.checked ? '' : 'hide';
 	}
+	
+	function focused() {
+		$.activeElement.select();
+	}
+	function onfocus() {
+		window.setTimeout(focused);
+	}
+	
+	// 設定
+	
+	var config = {
+		s: true, d: 10, f: 0,
+		t: false, m: false,
+		y: false, a: 3,
+		
+		k: false, k1: 21, k2: 6,
+		h0: false, h1: false, h2: false, h3: false,
+		h4: false, h5: false, h6: false,
+		
+		v: true, i: 10, n: 0, p: 0,
+		j: false, z: false,
+		x: false,
+		l: false, g: false, r: false,
+		c: false, w: false,
+		
+		_: false,
+		
+		next: '', prev: ''
+	};
+	var inputs = {};
+	
+	var xids = [
+		's', 'v', 't', 'm', 'y',
+		'j', 'l', 'x', 'c', '_', 'w', 'z', 'g', 'r'
+	];
+	var wids = ['h0', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6'];
+	
+	function d(input, disabled) {
+		input.disabled = disabled;
+		input.parentNode.className = disabled ? dClass : '';
+	}
+	
+	function disable() {
+		d(inputs.d, config.s);
+		d(inputs.f, config.s);
+		d(inputs.t, config.s);
+		d(inputs.m, config.s || config.t);
+		d(inputs.y, config.s);
+		d(inputs.a, config.s || config.y);
+		
+		d(inputs.k1, !config.k);
+		d(inputs.k2, !config.k);
+		
+		d(inputs.i, config.v);
+		d(inputs.n, config.v);
+		d(inputs.p, config.v || config.i == 10 && config.n != 4);
+		d(inputs.j, config.v || config.i >= 3600);
+		d(inputs.z, config.v || config.i >=   60);
+		d(inputs.x, config.v);
+		d(inputs.g, config.v || config.l);
+		d(inputs.r, config.l);
+		d(inputs.c, config.v);
+		d(inputs.w, config.v);
+		
+		d(inputs.next, config.n != -1);
+		d(inputs.prev, config.p != -1);
+	}
+	
+	function resume() {
+		if (!context) {
+			context = new AudioContext();
+			
+			destination = context.createGain();
+			destination.connect(context.destination);
+			breaker = destination.gain;
+			breaker.value = gain;
+			
+			latency = context.baseLatency;
+			if (latency == null) {
+				latency = 0;
+			}
+		}
+		if (context.resume != null) {
+			context.resume();
+		}
+	}
+	
+	function oncheck() {
+		switch (this.id) {
+			case 's':
+			if (!this.checked) {
+				resume();
+			}
+			break;
+			
+			case 'v':
+			if (!this.checked) {
+				speak(' ');
+			}
+			break;
+			
+			case 'l': case 'r':
+			changed = true;
+			break;
+		}
+		config[this.id] = this.checked;
+		disable();
+	}
+	function onselect() {
+		config[this.id] = +this.value;
+		disable();
+	}
+	function oninput() {
+		config[this.id] = this.value;
+	}
+	
+	function register(id) {
+		var input = $.getElementById(id);
+		if (input == null) return;
+		
+		switch (input.tagName) {
+			case inputTag:
+			switch (input.type) {
+				case 'checkbox':
+				input.checked = config[id];
+				input.onclick = oncheck;
+				break;
+				
+				default:
+				input.value = config[id];
+				input.onfocus = onfocus;
+				input.oninput  = oninput;
+				input.onchange = oninput;
+				break;
+			}
+			break;
+			
+			case selectTag:
+			input.value = config[id];
+			input.onchange = onselect;
+			break;
+		}
+		inputs[id] = input;
+	}
+	
+	function alt(altKey) {
+		pref.className = altKey ? prefClass + ' alt' : prefClass;
+	}
+	
+	function onkeydown(event) {
+		var altKey = event.altKey;
+		alt(altKey);
+		
+		var key = String.fromCharCode(event.keyCode | 32);
+		if (key in inputs) {
+			var input = inputs[key];
+			if (input.disabled) return;
+			
+			var target = event.target;
+			var tagName = target.tagName;
+			var not = !(
+				tagName == selectTag ||
+				tagName == inputTag && target.type == 'text');
+			if (not || altKey) {
+				input.focus();
+				if (altKey) {
+					if (not) {
+						input.click();
+					}
+					return false;
+				}
+			}
+		}
+	}
+	function onkeyup(event) {
+		alt(event.altKey);
+	}
+	
+	// 詳細設定
+	
+	var select;
+	var voiceURI;
+	var voices = []; var voice;
+	var params = {pitch: null, rate: null, volume: null};
+	var binds = {};
 	
 	function setVoice() {
 		voice = voices[select.selectedIndex];
@@ -166,217 +347,69 @@ var jsont; // JSONPコールバック関数公開用
 		return count(str) < digits ? num.toFixed(digits) : str;
 	}
 	
-	function bind(id, disabled) {
+	function handler(event) {
+		var target = event.target;
+		var param = binds[this.id][target.type](
+			target.value, event.type == 'change');
+		if (param != null) {
+			params[this.id] = param;
+		}
+	}
+	
+	function Bind(id, disabled) {
 		var param = params[id];
-		var input = $.getElementById(id);
-		var radio = $.getElementById(id + '-s');
-		var range = $.getElementById(id + '-r');
+		var label = $.getElementById(id);
+		var inputs = label.getElementsByTagName(inputTag);
+		this._text  = inputs[0];
+		this._range = inputs[1];
 		
-		var value = +range.defaultValue;
-		var digits = count(range.step);
+		this._default = +this._range.defaultValue;
+		this._digits = count(this._range.step);
 		
 		if (param == null) {
-			params[id] = param = value;
+			params[id] = param = this._default;
 		}
-		input.value = toFixed(param, digits);
-		range.value = param;
+		this._text.value = toFixed(param, this._digits);
+		this._range.value = param;
 		
 		if (disabled) {
-			input.disabled = true;
-			radio.disabled = true;
-			range.disabled = true;
+			this._text .disabled = true;
+			this._range.disabled = true;
+			label.className = dClass;
 			return;
 		}
-		var min = +range.min, max = +range.max;
-		var select = function () {
-			input.select();
-		};
+		this._min = +this._range.min;
+		this._max = +this._range.max;
 		
-		input.placeholder = value.toFixed(digits);
-		input.onfocus = function () {
-			radio.checked = true;
-			window.setTimeout(select);
-		};
+		this._text.placeholder = this._default.toFixed(this._digits);
+		this._text.onfocus = onfocus;
 		
-		input.oninput = function () {
-			param = parseFloat(this.value);
-			if (isNaN(param)) {
-				param = value;
-			} else {
-				if (param < min) { param = min; }
-				if (param > max) { param = max; }
-			}
-			range.value = param;
-			params[id] = param;
-		};
-		input.onchange = function () {
-			this.oninput();
-			this.value = toFixed(param, digits);
-		};
-		
-		range.oninput = function () {
-			param = +this.value;
-			input.value = param.toFixed(digits);
-		};
-		range.onchange = function () {
-			this.oninput();
-			params[id] = param;
-		};
+		label.oninput  = handler;
+		label.onchange = handler;
 	}
+	var bind = Bind.prototype;
 	
-	var config = {
-		s: true, d: 10, f: 0,
-		t: false, m: false,
-		y: false, a: 3,
-		
-		k: false, k1: 21, k2: 6,
-		h0: false, h1: false, h2: false, h3: false,
-		h4: false, h5: false, h6: false,
-		
-		v: true, i: 10, n: 0, p: 0,
-		j: false, z: false,
-		x: false,
-		l: false, g: false, r: false,
-		c: false, w: false,
-		
-		_: false
+	bind.text = function (value, done) {
+		var param = parseFloat(value);
+		if (isNaN(param)) {
+			param = this._default;
+		} else {
+			if (param < this._min) { param = this._min; }
+			if (param > this._max) { param = this._max; }
+		}
+		if (done) {
+			this._text.value = toFixed(param, this._digits);
+		}
+		this._range.value = param;
+		return param;
 	};
-	var inputs = {};
+	bind.range = function (value, done) {
+		var param = +value;
+		this._text.value = param.toFixed(this._digits);
+		if (done) return param;
+	};
 	
-	var xids = [
-		's', 'v', 't', 'm', 'y',
-		'j', 'l', 'x', 'c', '_', 'w', 'z', 'g', 'r'
-	];
-	var wids = ['h0', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6'];
-	
-	function d(id, disabled) {
-		var input = inputs[id];
-		input.disabled = disabled;
-		input.parentNode.className = disabled ? dClass : '';
-	}
-	
-	function disable() {
-		d('d', config.s);
-		d('f', config.s);
-		d('t', config.s);
-		d('m', config.s || config.t);
-		d('y', config.s);
-		d('a', config.s || config.y);
-		
-		d('k1', !config.k);
-		d('k2', !config.k);
-		
-		d('i', config.v);
-		d('n', config.v);
-		d('p', config.v || config.i == 10 && config.n != 4);
-		d('j', config.v || config.i >= 3600);
-		d('z', config.v || config.i >=   60);
-		d('x', config.v);
-		d('g', config.v || config.l);
-		d('r', config.l);
-		d('c', config.v);
-		d('w', config.v);
-	}
-	
-	function resume() {
-		if (!context) {
-			context = new AudioContext();
-			
-			destination = context.createGain();
-			destination.connect(context.destination);
-			breaker = destination.gain;
-			breaker.value = gain;
-			
-			latency = context.baseLatency;
-			if (latency == null) {
-				latency = 0;
-			}
-		}
-		if (context.resume != null) {
-			context.resume();
-		}
-	}
-	
-	function oncheck() {
-		switch (this.id) {
-			case 's':
-			if (!this.checked) {
-				resume();
-			}
-			break;
-			
-			case 'v':
-			if (!this.checked) {
-				speak(' ');
-			}
-			break;
-			
-			case 'l': case 'r':
-			changed = true;
-			break;
-		}
-		config[this.id] = this.checked;
-		disable();
-	}
-	function onselect() {
-		config[this.id] = +this.value;
-		disable();
-	}
-	
-	function input(id) {
-		var input = $.getElementById(id);
-		if (input) {
-			switch (input.tagName) {
-				case inputTag:
-				switch (input.type) {
-					case 'checkbox':
-					input.checked = config[id];
-					input.onclick = oncheck;
-					break;
-				}
-				break;
-				
-				case selectTag:
-				input.value = config[id];
-				input.onchange = onselect;
-				break;
-			}
-			inputs[id] = input;
-		}
-	}
-	
-	function alt(altKey) {
-		pref.className = altKey ? prefClass + ' alt' : prefClass;
-	}
-	
-	function onkeydown(event) {
-		var altKey = event.altKey;
-		alt(altKey);
-		
-		var key = String.fromCharCode(event.keyCode | 32);
-		if (key in inputs) {
-			var input = inputs[key];
-			if (input.disabled) return;
-			
-			var target = event.target;
-			var tagName = target.tagName;
-			var not = !(
-				tagName == selectTag ||
-				tagName == inputTag && target.type == 'text');
-			if (not || altKey) {
-				input.focus();
-				if (altKey) {
-					if (not) {
-						input.click();
-					}
-					return false;
-				}
-			}
-		}
-	}
-	function onkeyup(event) {
-		alt(event.altKey);
-	}
+	// 読み込み・保存
 	
 	var rs = /\s/, rb = /\\\\/g, rq = /\\"/g, re = /\\(?=\s|")/g;
 	var escb = /\\/g, escq = /"/g;
@@ -421,14 +454,11 @@ var jsont; // JSONPコールバック関数公開用
 			}
 		}
 	}
-	function set(id, arg) {
-		var value = parseInt(arg, 10);
-		config[id] = isNaN(value) ? 0 : value;
-	}
 	
 	function intOf(str, defaultValue) {
 		var value = parseInt(str, 10);
-		return isNaN(value) ? defaultValue : value;
+		return isNaN(value) ? defaultValue == null ?
+			0 : defaultValue : value;
 	}
 	
 	function custom(arg) {
@@ -444,6 +474,10 @@ var jsont; // JSONPコールバック関数公開用
 			var f = parseFloat(value);
 			if (isNaN(f)) break;
 			params[key] = f;
+			break;
+			
+			case 'next': case 'prev':
+			config[key] = value;
 			break;
 		}
 	}
@@ -470,11 +504,11 @@ var jsont; // JSONPコールバック関数公開用
 				case 'w': sets(wids, v); break;
 				
 				case 'f': case 'a': case 'n': case 'p':
-				set(c, v);
+				config[c] = intOf(v);
 				break;
 				
-				case 's': set('d', v); break;
-				case 'v': set('i', v); break;
+				case 's': config.d = intOf(v); break;
+				case 'v': config.i = intOf(v); break;
 				
 				case 'q':
 				config.k = true;
@@ -535,6 +569,13 @@ var jsont; // JSONPコールバック関数公開用
 		}
 		if (voice != null) {
 			hash += ' --voice=' + quote(voice.voiceURI);
+		}
+		
+		if (config.n == -1 && config.next) {
+			hash += ' --next=' + quote(config.next);
+		}
+		if (config.p == -1 && config.prev) {
+			hash += ' --prev=' + quote(config.prev);
 		}
 		
 		location.hash = hash;
@@ -834,6 +875,7 @@ var jsont; // JSONPコールバック関数公開用
 	// アナウンス
 	
 	var comma = '、';
+	var replacer = /\u301c|\uff5e/g;
 	
 	function mute() {
 		breaker.value = 0;
@@ -923,6 +965,9 @@ var jsont; // JSONPコールバック関数公開用
 				case 3:
 				speak(about(n) + 'になります');
 				return;
+				case -1:
+				speak(config.next.replace(replacer, about(n)));
+				return;
 			}
 		}
 		if (p == -2) {
@@ -938,6 +983,9 @@ var jsont; // JSONPコールバック関数公開用
 				return;
 				case 4:
 				speak(about(p) + 'になりました');
+				return;
+				case -1:
+				speak(config.prev.replace(replacer, about(p)));
 				return;
 			}
 		}
@@ -1023,13 +1071,12 @@ var jsont; // JSONPコールバック関数公開用
 		prefClass = pref.className;
 		
 		// 時刻補正
-		ntp = $.getElementById('ntp');
 		refetch = $.getElementById('refetch');
 		refetch.onclick = start;
 		diffText = $.getElementById('diff').firstChild;
 		
 		var details = $.getElementById('details');
-		details.onclick = onclick;
+		details.onclick = toggle;
 		details.onclick();
 		
 		leapText = $.getElementById('leap').lastChild;
@@ -1042,12 +1089,23 @@ var jsont; // JSONPコールバック関数公開用
 		}
 		log.removeChild(log.firstChild);
 		
+		var id;
+		for (id in config) {
+			register(id);
+		}
+		d(inputs.s, AudioContext == null);
+		disable();
+		
+		var advanced = $.getElementById('advanced');
+		advanced.onclick = toggle;
+		advanced.onclick();
+		
 		var noSS = synthesis == null;
 		
 		select = $.getElementById('voice');
 		if (noSS) {
-			$.getElementById('params').className = dClass;
-			select.disabled = true;
+			d(inputs.v, true);
+			d(select, true);
 		} else {
 			synthesis.onvoiceschanged = onvoiceschanged;
 			synthesis.onvoiceschanged();
@@ -1055,17 +1113,9 @@ var jsont; // JSONPコールバック関数公開用
 			select.onchange = onchange;
 		}
 		
-		var id;
 		for (id in params) {
-			bind(id, noSS);
+			binds[id] = new Bind(id, noSS);
 		}
-		
-		for (id in config) {
-			input(id);
-		}
-		d('s', AudioContext == null);
-		d('v', noSS);
-		disable();
 		
 		$.getElementById('help').onclick = help;
 		$.getElementById('save').onclick = save;
