@@ -875,7 +875,7 @@ var jsont; // JSONPコールバック関数公開用
 	// アナウンス
 	
 	var comma = '、';
-	var replacer = /\u301c|\uff5e/g;
+	var replacer = /~|\u301c|\uff5e/g;
 	
 	function mute() {
 		breaker.value = 0;
