@@ -95,8 +95,7 @@ var jsont; // JSONPコールバック関数公開用
 	}
 	
 	function toggle() {
-		this.parentNode.className =
-			this.checked ? '' : 'hide';
+		this.parentNode.className = this.checked ? '' : 'hide';
 	}
 	
 	function focused() {
@@ -412,7 +411,7 @@ var jsont; // JSONPコールバック関数公開用
 	// 読み込み・保存
 	
 	var rs = /\s/, rb = /\\\\/g, rq = /\\"/g, re = /\\(?=\s|")/g;
-	var escb = /\\/g, escq = /"/g;
+	var escb = /\\|"/g, escp = /%/g;
 	
 	var c0 = '0', c1 = '1';
 	
@@ -442,8 +441,8 @@ var jsont; // JSONPコールバック関数公開用
 	
 	function quote(str) {
 		return '"' + str
-			.replace(escb, '\\\\')
-			.replace(escq, '\\"') + '"';
+			.replace(escb, '\\$&')
+			.replace(escp, '%25') + '"';
 	}
 	
 	function sets(ids, arg) {
