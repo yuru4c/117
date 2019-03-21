@@ -348,9 +348,8 @@ var jsont; // JSONPコールバック関数公開用
 	}
 	
 	function handler(event) {
-		var target = event.target;
-		var param = binds[this.id][target.type](
-			target.value, event.type == 'change');
+		var param = binds[this.id]
+			.handle(event.target, event.type == 'change');
 		if (param != null) {
 			params[this.id] = param;
 		}
@@ -360,53 +359,54 @@ var jsont; // JSONPコールバック関数公開用
 		var param = params[id];
 		var label = $.getElementById(id);
 		var inputs = label.getElementsByTagName(inputTag);
-		this._text  = inputs[0];
-		this._range = inputs[1];
+		this.input = inputs[0];
+		this.range = inputs[1];
 		
-		this._default = +this._range.defaultValue;
-		this._digits = count(this._range.step);
+		this.value = +this.range.defaultValue;
+		this.digits = count(this.range.step);
 		
 		if (param == null) {
-			params[id] = param = this._default;
+			params[id] = param = this.value;
 		}
-		this._text.value = toFixed(param, this._digits);
-		this._range.value = param;
+		this.input.value = toFixed(param, this.digits);
+		this.range.value = param;
 		
 		if (disabled) {
-			this._text .disabled = true;
-			this._range.disabled = true;
+			this.input.disabled = true;
+			this.range.disabled = true;
 			label.className = dClass;
 			return;
 		}
-		this._min = +this._range.min;
-		this._max = +this._range.max;
+		this.min = +this.range.min;
+		this.max = +this.range.max;
 		
-		this._text.placeholder = this._default.toFixed(this._digits);
-		this._text.onfocus = onfocus;
+		this.input.placeholder = this.value.toFixed(this.digits);
+		this.input.onfocus = onfocus;
 		
 		label.oninput  = handler;
 		label.onchange = handler;
 	}
-	var bind = Bind.prototype;
 	
-	bind.text = function (value, done) {
-		var param = parseFloat(value);
-		if (isNaN(param)) {
-			param = this._default;
-		} else {
-			if (param < this._min) { param = this._min; }
-			if (param > this._max) { param = this._max; }
+	Bind.prototype.handle = function (target, done) {
+		var value = parseFloat(target.value);
+		switch (target.type) {
+			case 'range':
+			this.input.value = value.toFixed(this.digits);
+			return done ? value : null;
+			
+			default:
+			if (isNaN(value)) {
+				value = this.value;
+			} else {
+				if (value < this.min) { value = this.min; }
+				if (value > this.max) { value = this.max; }
+			}
+			if (done) {
+				this.input.value = toFixed(value, this.digits);
+			}
+			this.range.value = value;
+			return value;
 		}
-		if (done) {
-			this._text.value = toFixed(param, this._digits);
-		}
-		this._range.value = param;
-		return param;
-	};
-	bind.range = function (value, done) {
-		var param = +value;
-		this._text.value = param.toFixed(this._digits);
-		if (done) return param;
 	};
 	
 	// 読み込み・保存
