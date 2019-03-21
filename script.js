@@ -95,7 +95,7 @@ var jsont; // JSONPコールバック関数公開用
 	}
 	
 	function toggle() {
-		this.parentNode.parentNode.className =
+		this.parentNode.className =
 			this.checked ? '' : 'hide';
 	}
 	

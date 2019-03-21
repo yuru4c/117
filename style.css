@@ -40,19 +40,17 @@ tt, .monospace {
 	overflow-x: auto;
 	overflow-y: hidden;
 }
+.item {
+	display: inline-block;
+	vertical-align: top;
+	text-align: left;
+}
 .pre {
 	white-space: pre;
 }
 .clear {
 	display: block;
 	clear: both;
-}
-.label, .item {
-	display: inline-block;
-}
-.item {
-	vertical-align: top;
-	text-align: left;
 }
 .size {
 	box-sizing: border-box;
@@ -83,13 +81,16 @@ tt, .monospace {
 .alt kbd {
 	text-decoration: underline;
 }
-.hide .hidden {
+.hide + .hidden {
 	display: none;
 }
 
 .ntp {
 	margin-bottom: 1em;
 	white-space: nowrap;
+}
+.ntp label {
+	display: inline-block;
 }
 .message {
 	margin: 0.5em 1em;
