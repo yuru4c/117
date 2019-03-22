@@ -48,10 +48,6 @@ tt, .monospace {
 .pre {
 	white-space: pre;
 }
-.clear {
-	display: block;
-	clear: both;
-}
 .size {
 	box-sizing: border-box;
 }
@@ -98,9 +94,18 @@ tt, .monospace {
 	font-family: sans-serif;
 	white-space: normal;
 }
-#last {
+.message label {
+	display: block;
+	line-height: 1.5;
+	white-space: nowrap;
+}
+.float {
 	float: right;
 	margin-left: 1.2em;
+}
+.float + * {
+	clear: both;
+	margin-top: 0.5em;
 }
 
 .container, .container fieldset {
@@ -139,7 +144,7 @@ tt, .monospace {
 	display: block;
 }
 
-.container .box {
+.select .box {
 	display: inline-block;
 	text-align: left;
 }

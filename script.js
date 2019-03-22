@@ -43,6 +43,12 @@ var jsont; // JSONPコールバック関数公開用
 	// 時刻取得タイムアウト
 	var period = 3000;
 	
+	var ids = [
+		'ntp-a1.nict.go.jp',
+		'ntp-b1.nict.go.jp',
+		'ntp-a4.nict.go.jp'
+	];
+	
 	var gain = Math.SQRT1_2 / 2;
 	
 	var lang = 'ja-JP';
@@ -108,22 +114,23 @@ var jsont; // JSONPコールバック関数公開用
 	// 設定
 	
 	var config = {
-		s: true, d: 10, f: 0,
-		t: false, m: false,
+		s: true, d: 10, f: 2,
+		t: false, m: true,
 		y: false, a: 3,
 		
 		k: false, k1: 21, k2: 6,
 		h0: false, h1: false, h2: false, h3: false,
 		h4: false, h5: false, h6: false,
 		
-		v: true, i: 10, n: 0, p: 0,
-		j: false, z: false,
+		v: true, i: 10, n: 1, p: 0,
+		j: false, z: true,
 		x: false,
 		l: false, g: false, r: false,
 		c: false, w: false,
 		
 		_: false,
 		
+		ntp: true,
 		next: '', prev: ''
 	};
 	var inputs = {};
@@ -415,8 +422,85 @@ var jsont; // JSONPコールバック関数公開用
 	
 	var c0 = '0', c1 = '1';
 	
-	function parse(str) {
-		var args = []; var i = 0;
+	function sets(ids, str) {
+		var l = ids.length;
+		for (var i = 0; i < l; i++) {
+			var id = ids[i];
+			switch (id) {
+				case 's':
+				case 'v': continue;
+			}
+			config[id] = str.charAt(i) == c1;
+		}
+	}
+	
+	function intOf(str, defaultValue) {
+		var value = parseInt(str, 10);
+		return isNaN(value) ? defaultValue == null ?
+			0 : defaultValue : value;
+	}
+	
+	function custom(arg) {
+		var index = arg.indexOf('=');
+		if (index == -1) {
+			index = arg.length;
+		}
+		var key   = arg.substring(0, index);
+		var value = arg.substr(index + 1);
+		
+		switch (key) {
+			case 'off':
+			config.ntp = false;
+			break;
+			
+			case 'voice':
+			voiceURI = value;
+			break;
+			
+			case 'volume': case 'pitch': case 'rate':
+			var f = parseFloat(value);
+			if (isNaN(f)) break;
+			params[key] = f;
+			break;
+			
+			case 'next': case 'prev':
+			config[key] = value;
+			break;
+		}
+	}
+	function set(arg) {
+		if (arg.charAt(0) != '-') return;
+		var c = arg.charAt(1);
+		var v = arg.substr(2);
+		
+		switch (c) {
+			case 'x': sets(xids, v); break;
+			case 'w': sets(wids, v); break;
+			
+			case 'f': case 'a': case 'n': case 'p':
+			config[c] = intOf(v);
+			break;
+			
+			case 's': config.d = intOf(v); break;
+			case 'v': config.i = intOf(v); break;
+			
+			case 'q':
+			var vs = v.split('-');
+			config.k = true;
+			config.k1 = intOf(vs[0], 0);
+			config.k2 = intOf(vs[1], config.k1);
+			break;
+			
+			case '-': custom(v); break;
+		}
+	}
+	
+	function load() {
+		var hash = location.hash;
+		if (!hash) return;
+		var str = decode(hash.substr(1));
+		
+		var i = 0;
 		for (var c; c = str.charAt(i); i++) {
 			if (rs.test(c)) continue;
 			var v = ''; var b = i;
@@ -434,90 +518,7 @@ var jsont; // JSONPコールバック関数公開用
 				b = i + 1;
 			} while (c = str.charAt(++i));
 			v += str.substring(b, i).replace(re, '');
-			args.push(v.replace(rb, '\\'));
-		}
-		return args;
-	}
-	
-	function quote(str) {
-		return '"' + str
-			.replace(escb, '\\$&')
-			.replace(escp, '%25') + '"';
-	}
-	
-	function sets(ids, arg) {
-		var l = ids.length;
-		for (var i = 0; i < l; i++) {
-			if (arg.charAt(i) == c1) {
-				config[ids[i]] = true;
-			}
-		}
-	}
-	
-	function intOf(str, defaultValue) {
-		var value = parseInt(str, 10);
-		return isNaN(value) ? defaultValue == null ?
-			0 : defaultValue : value;
-	}
-	
-	function custom(arg) {
-		var index = arg.indexOf('=');
-		var key   = arg.substring(0, index);
-		var value = arg.substr(index + 1);
-		switch (key) {
-			case 'voice':
-			voiceURI = value;
-			break;
-			
-			case 'volume': case 'pitch': case 'rate':
-			var f = parseFloat(value);
-			if (isNaN(f)) break;
-			params[key] = f;
-			break;
-			
-			case 'next': case 'prev':
-			config[key] = value;
-			break;
-		}
-	}
-	
-	function load() {
-		var hash = location.hash;
-		if (!hash) {
-			config.f = 2;
-			config.m = true;
-			config.n = 1;
-			config.z = true;
-			return;
-		}
-		var argv = parse(decode(hash.substr(1)));
-		var argc = argv.length;
-		for (var i = 0; i < argc; i++) {
-			var arg = argv[i];
-			if (arg.charAt(0) != '-') continue;
-			
-			var c = arg.charAt(1);
-			var v = arg.substr(2);
-			switch (c) {
-				case 'x': sets(xids, v); break;
-				case 'w': sets(wids, v); break;
-				
-				case 'f': case 'a': case 'n': case 'p':
-				config[c] = intOf(v);
-				break;
-				
-				case 's': config.d = intOf(v); break;
-				case 'v': config.i = intOf(v); break;
-				
-				case 'q':
-				config.k = true;
-				var vs = v.split('-');
-				config.k1 = intOf(vs[0], 0);
-				config.k2 = intOf(vs[1], config.k1);
-				break;
-				
-				case '-': custom(v); break;
-			}
+			set(v.replace(rb, '\\'));
 		}
 	}
 	
@@ -533,6 +534,12 @@ var jsont; // JSONPコールバック関数公開用
 			}
 		}
 		return flag ? flags : null;
+	}
+	
+	function quote(str) {
+		return '"' + str
+			.replace(escb, '\\$&')
+			.replace(escp, '%25') + '"';
 	}
 	
 	function save() {
@@ -555,6 +562,10 @@ var jsont; // JSONPコールバック関数公開用
 		
 		if (config.k) {
 			hash += ' -q' + config.k1 + '-' + config.k2;
+		}
+		
+		if (!config.ntp) {
+			hash += ' --off';
 		}
 		
 		if (params.volume != 1) {
@@ -591,12 +602,7 @@ var jsont; // JSONPコールバック関数公開用
 	var leap, step, leaps;
 	var leaping, stepped = false;
 	
-	var ids = [
-		'ntp-a1.nict.go.jp',
-		'ntp-b1.nict.go.jp',
-		'ntp-a4.nict.go.jp'
-	];
-	var servers = []; // サーバリスト
+	var srcs = [];
 	
 	var head; // head要素 appendChild(script)用
 	
@@ -673,9 +679,9 @@ var jsont; // JSONPコールバック関数公開用
 	function send() { // JSONPリクエスト
 		script = $.createElement('script');
 		script.type = 'text/javascript';
-		var server = servers[i];
+		var src = srcs[i];
 		lastIt = new Date() / 1000; // 発信時刻 (秒)
-		script.src = server + lastIt;
+		script.src = src + lastIt;
 		head.appendChild(script); // 直ちに送信
 	}
 	
@@ -1020,11 +1026,11 @@ var jsont; // JSONPコールバック関数公開用
 	
 	// 初期化
 	
-	var url = (location.protocol == https ? https : http) + '//';
+	var scheme = (location.protocol == https ? https : http) + '//';
 	
 	for (i = 0; i < length; i++) {
 		var id = ids[i];
-		servers[i] = url + id + '/cgi-bin/jsont?';
+		srcs[i] = scheme + id + '/cgi-bin/jsont?';
 		
 		var li = $.createElement('li');
 		var logText = $.createTextNode('―'); // 書き換え用TextNode
@@ -1035,10 +1041,14 @@ var jsont; // JSONPコールバック関数公開用
 		logTexts[i] = logText;
 	}
 	
+	load();
+	
 	function init() {
 		$.onreadystatechange = null;
 		
-		start(); // サーバ時刻取得開始
+		if (config.ntp) {
+			start(); // サーバ時刻取得開始
+		}
 		tick();
 		
 		onvisibilitychange.call($); // 表示更新開始
@@ -1046,8 +1056,6 @@ var jsont; // JSONPコールバック関数公開用
 	}
 	
 	$.onreadystatechange = function () {
-		load();
-		
 		// head 要素取得
 		head = $.getElementsByTagName('head')[0];
 		

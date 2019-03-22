@@ -22,6 +22,6 @@
 特に、時刻補正後に調整されたり、ずれたりすると正しい時刻は表示されません。
 
 ## リンク
-* [日本標準時(JST)グループ](http://jjy.nict.go.jp/tsp/PubNtp/index.html)
+* 日本標準時(JST)グループ <http://jjy.nict.go.jp/tsp/PubNtp/index.html>
 
-+ ~~[オフライン117（時報・音声時計）](http://www.yourname.jp/soft/offline117.shtml)~~
++ ~~オフライン117（時報・音声時計） `http://www.yourname.jp/soft/offline117.shtml`~~
