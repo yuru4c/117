@@ -43,16 +43,19 @@ var jsont; // JSONPコールバック関数公開用
 	// 時刻取得タイムアウト
 	var period = 3000;
 	
+	// サーバリスト
 	var ids = [
 		'ntp-a1.nict.go.jp',
 		'ntp-b1.nict.go.jp',
 		'ntp-a4.nict.go.jp'
 	];
+	var path = '/cgi-bin/jsont?';
 	
+	// 発振音の音量
 	var gain = Math.SQRT1_2 / 2;
 	
-	var lang = 'ja-JP';
-	var langRe = /^ja([-_].*)?$/i;
+	// ヘルプのアドレス
+	var readme = 'https://github.com/yuru4c/117/blob/master/README.md';
 	
 	// 共用変数
 	
@@ -61,10 +64,6 @@ var jsont; // JSONPコールバック関数公開用
 	var days = ['日', '月', '火', '水', '木', '金', '土'];
 	
 	var location = window.location;
-	var https = 'https:', http = 'http:';
-	
-	var inputTag = 'INPUT', selectTag = 'SELECT';
-	var dClass = 'disabled';
 	
 	var hidden = prefix($, 'hidden', [webkit, moz]);
 	var visibilitychange = hidden.slice(0, -6) + 'visibilitychange';
@@ -72,12 +71,14 @@ var jsont; // JSONPコールバック関数公開用
 	var context; var destination; var breaker;
 	var latency;
 	
+	var lang = 'ja-JP';
+	var langRe = /^ja/i;
 	var synthesis = window.speechSynthesis;
 	
 	// 設定画面
 	
 	var pref; // #pref要素
-	var prefClass;
+	var prefClass, altClass;
 	
 	var refetch;  // #refetch要素 再取得ボタン
 	var diffText, leapText, lastText; // 補正, 閏秒, 最終更新 TextNode
@@ -134,6 +135,10 @@ var jsont; // JSONPコールバック関数公開用
 		next: '', prev: ''
 	};
 	var inputs = {};
+	var button;
+	
+	var inputTag = 'INPUT', selectTag = 'SELECT';
+	var dClass = 'disabled';
 	
 	var xids = [
 		's', 'v', 't', 'm', 'y',
@@ -144,6 +149,9 @@ var jsont; // JSONPコールバック関数公開用
 	function d(input, disabled) {
 		input.disabled = disabled;
 		input.parentNode.className = disabled ? dClass : '';
+	}
+	function dirty() {
+		button.disabled = false;
 	}
 	
 	function disable() {
@@ -170,6 +178,8 @@ var jsont; // JSONPコールバック関数公開用
 		
 		d(inputs.next, config.n != -1);
 		d(inputs.prev, config.p != -1);
+		
+		dirty();
 	}
 	
 	function resume() {
@@ -179,7 +189,7 @@ var jsont; // JSONPコールバック関数公開用
 			destination = context.createGain();
 			destination.connect(context.destination);
 			breaker = destination.gain;
-			breaker.value = gain;
+			unmute();
 			
 			latency = context.baseLatency;
 			if (latency == null) {
@@ -218,6 +228,7 @@ var jsont; // JSONPコールバック関数公開用
 	}
 	function oninput() {
 		config[this.id] = this.value;
+		dirty();
 	}
 	
 	function register(id) {
@@ -250,7 +261,7 @@ var jsont; // JSONPコールバック関数公開用
 	}
 	
 	function alt(altKey) {
-		pref.className = altKey ? prefClass + ' alt' : prefClass;
+		pref.className = altKey ? altClass : prefClass;
 	}
 	
 	function onkeydown(event) {
@@ -286,12 +297,17 @@ var jsont; // JSONPコールバック関数公開用
 	
 	var select;
 	var voiceURI;
-	var voices = []; var voice;
+	var voices = [];
+	var voice;
+	
 	var params = {pitch: null, rate: null, volume: null};
 	var binds = {};
 	
-	function setVoice() {
+	function setVoice(changed) {
 		voice = voices[select.selectedIndex];
+		if (changed) {
+			dirty();
+		}
 	}
 	
 	function onvoiceschanged() {
@@ -331,12 +347,12 @@ var jsont; // JSONPコールバック関数公開用
 		if (sel) {
 			select.selectedIndex = sel - 1;
 		}
-		setVoice();
+		setVoice(!restore);
 	}
 	
 	function onchange() {
 		voiceURI = null;
-		setVoice();
+		setVoice(true);
 	}
 	
 	function count(str) {
@@ -358,13 +374,15 @@ var jsont; // JSONPコールバック関数公開用
 			.handle(event.target, event.type == 'change');
 		if (param != null) {
 			params[this.id] = param;
+			dirty();
 		}
 	}
 	
 	function Bind(id, disabled) {
 		var param = params[id];
-		var label = $.getElementById(id);
-		var inputs = label.getElementsByTagName(inputTag);
+		
+		var box = $.getElementById(id);
+		var inputs = box.getElementsByTagName('input');
 		this.input = inputs[0];
 		this.range = inputs[1];
 		
@@ -380,7 +398,7 @@ var jsont; // JSONPコールバック関数公開用
 		if (disabled) {
 			this.input.disabled = true;
 			this.range.disabled = true;
-			label.className = dClass;
+			box.parentNode.className = dClass;
 			return;
 		}
 		this.min = +this.range.min;
@@ -389,8 +407,8 @@ var jsont; // JSONPコールバック関数公開用
 		this.input.placeholder = this.value.toFixed(this.digits);
 		this.input.onfocus = onfocus;
 		
-		label.oninput  = handler;
-		label.onchange = handler;
+		box.oninput  = handler;
+		box.onchange = handler;
 	}
 	
 	Bind.prototype.handle = function (target, done) {
@@ -507,6 +525,7 @@ var jsont; // JSONPコールバック関数公開用
 			do {
 				if (c == '\\') { i++; continue; }
 				if (rs.test(c)) break;
+				
 				if (c != '"') continue;
 				v += str.substring(b, i).replace(re, '');
 				b = ++i;
@@ -518,6 +537,7 @@ var jsont; // JSONPコールバック関数公開用
 				b = i + 1;
 			} while (c = str.charAt(++i));
 			v += str.substring(b, i).replace(re, '');
+			
 			set(v.replace(rb, '\\'));
 		}
 	}
@@ -589,10 +609,11 @@ var jsont; // JSONPコールバック関数公開用
 		}
 		
 		location.hash = hash;
+		this.disabled = true;
 	}
 	
 	function help() {
-		window.open('https://github.com/yuru4c/117/blob/master/README.md');
+		window.open(readme);
 	}
 	
 	// 時刻補正 JSONP (http://www.nict.go.jp/JST/http.html)
@@ -602,9 +623,8 @@ var jsont; // JSONPコールバック関数公開用
 	var leap, step, leaps;
 	var leaping, stepped = false;
 	
-	var srcs = [];
-	
 	var head; // head要素 appendChild(script)用
+	var srcs = [];
 	
 	var running, first; // 実行中, 最初の受信フラグ
 	var maxL, minU; // 時差 下限の最大値, 上限の最小値 (ミリ秒)
@@ -640,13 +660,11 @@ var jsont; // JSONPコールバック関数公開用
 	function jsonp(json) {
 		var receivedDate = new Date(); // 受信時刻 直ちに取得
 		var it           = json.it; // Initiated Time (秒)
-		
 		if (it != lastIt) return; // 待機中の応答でなければ無視
 		
 		window.clearTimeout(timeoutId); // タイムアウト解除
 		
 		var serverTime = json.st * 1000; // (ミリ秒)
-		
 		var l = it * 1000    - serverTime; // 時差 下限 (ミリ秒)
 		var u = receivedDate - serverTime; // 時差 上限 (ミリ秒)
 		
@@ -663,13 +681,14 @@ var jsont; // JSONPコールバック関数公開用
 		
 		leap = json.next * 1000;
 		step = json.step * 1000;
+		
 		leaping = leap > serverTime;
 		stepped = false;
 		if (leaping) {
 			leaps = step < 0 ? leap + step : leap;
 		}
 		
-		// ログ書き換え
+		result();
 		log(i, rstr(half(l + u), u - l) + ' ⇒ ' +
 			rstr(diff, minU - maxL) + ' ms');
 		
@@ -706,7 +725,6 @@ var jsont; // JSONPコールバック関数公開用
 		} else { // 完了
 			// 表示更新
 			if (!first) {
-				result();
 				date.setTime(getNow());
 				lastText.data = date.toLocaleString();
 				
@@ -813,11 +831,41 @@ var jsont; // JSONPコールバック関数公開用
 	
 	// 発振音
 	
+	function mute() {
+		breaker.value = 0;
+	}
+	function unmute() {
+		breaker.value = gain;
+	}
+	
 	function Tone(frequency, duration, delay) {
 		this.frequency = frequency;
 		this.duration = duration;
 		this.delay = delay;
 	}
+	
+	Tone.prototype.play = function (time) {
+		var end = time + this.duration;
+		var oscillator = context.createOscillator();
+		
+		oscillator.frequency.value = this.frequency;
+		oscillator.start(time);
+		oscillator.stop(end);
+		
+		if (this.delay == null) {
+			oscillator.connect(destination);
+		} else {
+			var node = context.createGain();
+			var gain = node.gain;
+			
+			gain.setValueAtTime(1, time + this.delay);
+			gain.linearRampToValueAtTime(0, end);
+			
+			oscillator.connect(node);
+			node.connect(destination);
+		}
+	};
+	
 	var tones = [
 		[
 			new Tone( 440, 0.1),
@@ -834,26 +882,6 @@ var jsont; // JSONPコールバック関数公開用
 		]
 	];
 	
-	function play(time, tone) {
-		var end = time + tone.duration;
-		var oscillator = context.createOscillator();
-		
-		oscillator.frequency.value = tone.frequency;
-		oscillator.start(time);
-		oscillator.stop(end);
-		
-		if (tone.delay == null) {
-			oscillator.connect(destination);
-		} else {
-			var node = context.createGain();
-			var gain = node.gain;
-			gain.setValueAtTime(1, time + tone.delay);
-			gain.linearRampToValueAtTime(0, end);
-			node.connect(destination);
-			oscillator.connect(node);
-		}
-	}
-	
 	function signal(s, timeout) {
 		if (config.s) return;
 		var time = context.currentTime + timeout / 1000 - latency;
@@ -864,16 +892,16 @@ var jsont; // JSONPコールバック関数公開用
 			if (!config.y) {
 				var r30 = 30 - s % 30;
 				if (!(r30 > config.a || (s + r30) % config.d)) {
-					play(time, tone[0]);
+					tone[0].play(time);
 					quiet = false;
 				}
 			}
 		} else {
-			play(time, tone[1]);
+			tone[1].play(time);
 			quiet = false;
 		}
 		if (!config.t && (quiet || config.m)) {
-			play(time, tone[2]);
+			tone[2].play(time);
 		}
 	}
 	
@@ -881,13 +909,6 @@ var jsont; // JSONPコールバック関数公開用
 	
 	var comma = '、';
 	var replacer = /~|\u301c|\uff5e/g;
-	
-	function mute() {
-		breaker.value = 0;
-	}
-	function unmute() {
-		breaker.value = gain;
-	}
 	
 	function speak(text) {
 		var utterance = new Utterance(text);
@@ -1015,6 +1036,7 @@ var jsont; // JSONPコールバック関数公開用
 			var m  = 60 * date.getHours() + date.getMinutes();
 			var k1 = 60 * config.k1 +  1;
 			var k2 = 60 * config.k2 + 59;
+			
 			var ge1 = m >= k1, lt2 = m < k2;
 			if (k1 > k2 ? ge1 || lt2 : ge1 && lt2) return;
 		}
@@ -1026,11 +1048,13 @@ var jsont; // JSONPコールバック関数公開用
 	
 	// 初期化
 	
-	var scheme = (location.protocol == https ? https : http) + '//';
+	var https = 'https:';
+	var http  = 'http:';
+	var protocol = (location.protocol == https ? https : http) + '//';
 	
 	for (i = 0; i < length; i++) {
 		var id = ids[i];
-		srcs[i] = scheme + id + '/cgi-bin/jsont?';
+		srcs[i] = protocol + id + path;
 		
 		var li = $.createElement('li');
 		var logText = $.createTextNode('―'); // 書き換え用TextNode
@@ -1076,6 +1100,7 @@ var jsont; // JSONPコールバック関数公開用
 		
 		pref = $.getElementById('pref');
 		prefClass = pref.className;
+		altClass = prefClass + ' alt';
 		
 		// 時刻補正
 		refetch = $.getElementById('refetch');
@@ -1096,23 +1121,34 @@ var jsont; // JSONPコールバック関数公開用
 		}
 		log.removeChild(log.firstChild);
 		
+		// 設定
+		var noAC = AudioContext == null;
+		var noSS = synthesis    == null;
+		
 		var id;
 		for (id in config) {
 			register(id);
 		}
-		d(inputs.s, AudioContext == null);
-		disable();
-		
 		var advanced = $.getElementById('advanced');
 		advanced.onclick = toggle;
 		advanced.onclick();
 		
-		var noSS = synthesis == null;
-		
 		select = $.getElementById('voice');
+		for (id in params) {
+			binds[id] = new Bind(id, noSS);
+		}
+		
+		$.getElementById('help').onclick = help;
+		button = $.getElementById('save');
+		button.onclick = save;
+		
+		disable();
+		if (noAC) {
+			d(inputs.s, true);
+		}
 		if (noSS) {
 			d(inputs.v, true);
-			d(select, true);
+			d(select,   true);
 		} else {
 			synthesis.onvoiceschanged = onvoiceschanged;
 			synthesis.onvoiceschanged();
@@ -1120,15 +1156,10 @@ var jsont; // JSONPコールバック関数公開用
 			select.onchange = onchange;
 		}
 		
-		for (id in params) {
-			binds[id] = new Bind(id, noSS);
-		}
-		
-		$.getElementById('help').onclick = help;
-		$.getElementById('save').onclick = save;
-		
 		$.onkeydown = onkeydown;
 		$.onkeyup   = onkeyup;
+		
+		// 続行
 		
 		if (this.readyState == 'complete') {
 			init();
