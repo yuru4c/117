@@ -68,7 +68,7 @@ var jsont; // JSONPコールバック関数公開用
 	var hidden = prefix($, 'hidden', [webkit, moz]);
 	var visibilitychange = hidden.slice(0, -6) + 'visibilitychange';
 	
-	var context; var destination; var breaker;
+	var context; var destination;
 	var latency;
 	
 	var lang = 'ja-JP';
@@ -132,7 +132,9 @@ var jsont; // JSONPコールバック関数公開用
 		_: false,
 		
 		ntp: true,
-		next: '', prev: ''
+		before: 9, after: 1,
+		next: '',
+		prev: ''
 	};
 	var inputs = {};
 	var button;
@@ -154,6 +156,10 @@ var jsont; // JSONPコールバック関数公開用
 		button.disabled = false;
 	}
 	
+	function speaks() {
+		return config.i == 10 && config.n != 4;
+	}
+	
 	function disable() {
 		d(inputs.d, config.s);
 		d(inputs.f, config.s);
@@ -167,7 +173,7 @@ var jsont; // JSONPコールバック関数公開用
 		
 		d(inputs.i, config.v);
 		d(inputs.n, config.v);
-		d(inputs.p, config.v || config.i == 10 && config.n != 4);
+		d(inputs.p, config.v || speaks());
 		d(inputs.j, config.v || config.i >= 3600);
 		d(inputs.z, config.v || config.i >=   60);
 		d(inputs.x, config.v);
@@ -176,6 +182,8 @@ var jsont; // JSONPコールバック関数公開用
 		d(inputs.c, config.v);
 		d(inputs.w, config.v);
 		
+		d(inputs.before, config.v);
+		d(inputs.after,  config.v);
 		d(inputs.next, config.n != -1);
 		d(inputs.prev, config.p != -1);
 		
@@ -185,11 +193,9 @@ var jsont; // JSONPコールバック関数公開用
 	function resume() {
 		if (!context) {
 			context = new AudioContext();
-			
 			destination = context.createGain();
+			destination.gain.value = gain;
 			destination.connect(context.destination);
-			breaker = destination.gain;
-			unmute();
 			
 			latency = context.baseLatency;
 			if (latency == null) {
@@ -200,6 +206,9 @@ var jsont; // JSONPコールバック関数公開用
 			context.resume();
 		}
 	}
+	function speak() {
+		synthesis.speak(new Utterance(' '));
+	}
 	
 	function oncheck() {
 		switch (this.id) {
@@ -208,10 +217,9 @@ var jsont; // JSONPコールバック関数公開用
 				resume();
 			}
 			break;
-			
 			case 'v':
 			if (!this.checked) {
-				speak(' ');
+				speak();
 			}
 			break;
 			
@@ -439,6 +447,7 @@ var jsont; // JSONPコールバック関数公開用
 	var escb = /\\|"/g, escp = /%/g;
 	
 	var c0 = '0', c1 = '1';
+	var sh = ' --', se = '=', ss = '-';
 	
 	function sets(ids, str) {
 		var l = ids.length;
@@ -451,15 +460,13 @@ var jsont; // JSONPコールバック関数公開用
 			config[id] = str.charAt(i) == c1;
 		}
 	}
-	
 	function intOf(str, defaultValue) {
 		var value = parseInt(str, 10);
-		return isNaN(value) ? defaultValue == null ?
-			0 : defaultValue : value;
+		return isNaN(value) ? defaultValue : value;
 	}
 	
 	function custom(arg) {
-		var index = arg.indexOf('=');
+		var index = arg.indexOf(se);
 		if (index == -1) {
 			index = arg.length;
 		}
@@ -481,11 +488,18 @@ var jsont; // JSONPコールバック関数公開用
 			params[key] = f;
 			break;
 			
+			case 'timing':
+			var ts = value.split(ss);
+			config.before = intOf(ts[0], config.before);
+			config.after  = intOf(ts[1], config.after);
+			break;
+			
 			case 'next': case 'prev':
 			config[key] = value;
 			break;
 		}
 	}
+	
 	function set(arg) {
 		if (arg.charAt(0) != '-') return;
 		var c = arg.charAt(1);
@@ -495,18 +509,19 @@ var jsont; // JSONPコールバック関数公開用
 			case 'x': sets(xids, v); break;
 			case 'w': sets(wids, v); break;
 			
-			case 'f': case 'a': case 'n': case 'p':
-			config[c] = intOf(v);
+			case 'f': case 'n': case 'p':
+			config[c] = intOf(v, 0);
 			break;
+			case 'a': config.a = intOf(v, 3); break;
 			
-			case 's': config.d = intOf(v); break;
-			case 'v': config.i = intOf(v); break;
+			case 's': config.d = intOf(v, 10); break;
+			case 'v': config.i = intOf(v, 10); break;
 			
 			case 'q':
-			var vs = v.split('-');
+			var ks = v.split(ss);
 			config.k = true;
-			config.k1 = intOf(vs[0], 0);
-			config.k2 = intOf(vs[1], config.k1);
+			config.k1 = intOf(ks[0], 0);
+			config.k2 = intOf(ks[1], config.k1);
 			break;
 			
 			case '-': custom(v); break;
@@ -555,7 +570,6 @@ var jsont; // JSONPコールバック関数公開用
 		}
 		return flag ? flags : null;
 	}
-	
 	function quote(str) {
 		return '"' + str
 			.replace(escb, '\\$&')
@@ -581,31 +595,34 @@ var jsont; // JSONPコールバック関数公開用
 		hash += ' -v' + config.i;
 		
 		if (config.k) {
-			hash += ' -q' + config.k1 + '-' + config.k2;
+			hash += ' -q' + config.k1 + ss + config.k2;
 		}
 		
 		if (!config.ntp) {
-			hash += ' --off';
+			hash += sh + 'off';
+		}
+		if (!config.v && (config.before != 9 || config.after != 1)) {
+			hash += sh + 'timing' + se + config.before + ss + config.after;
 		}
 		
 		if (params.volume != 1) {
-			hash += ' --volume=' + params.volume;
+			hash += sh + 'volume' + se + params.volume;
 		}
 		if (params.pitch != 1) {
-			hash += ' --pitch=' + params.pitch;
+			hash += sh + 'pitch' + se + params.pitch;
 		}
 		if (params.rate != 1) {
-			hash += ' --rate=' + params.rate;
+			hash += sh + 'rate' + se + params.rate;
 		}
 		if (voice != null) {
-			hash += ' --voice=' + quote(voice.voiceURI);
+			hash += sh + 'voice' + se + quote(voice.voiceURI);
 		}
 		
 		if (config.n == -1 && config.next) {
-			hash += ' --next=' + quote(config.next);
+			hash += sh + 'next' + se + quote(config.next);
 		}
 		if (config.p == -1 && config.prev) {
-			hash += ' --prev=' + quote(config.prev);
+			hash += sh + 'prev' + se + quote(config.prev);
 		}
 		
 		location.hash = hash;
@@ -831,20 +848,15 @@ var jsont; // JSONPコールバック関数公開用
 	
 	// 発振音
 	
-	function mute() {
-		breaker.value = 0;
-	}
-	function unmute() {
-		breaker.value = gain;
-	}
+	var speaking;
 	
-	function Tone(frequency, duration, delay) {
+	function Note(frequency, duration, delay) {
 		this.frequency = frequency;
 		this.duration = duration;
 		this.delay = delay;
 	}
 	
-	Tone.prototype.play = function (time) {
+	Note.prototype.on = function (time) {
 		var end = time + this.duration;
 		var oscillator = context.createOscillator();
 		
@@ -857,7 +869,6 @@ var jsont; // JSONPコールバック関数公開用
 		} else {
 			var node = context.createGain();
 			var gain = node.gain;
-			
 			gain.setValueAtTime(1, time + this.delay);
 			gain.linearRampToValueAtTime(0, end);
 			
@@ -866,68 +877,54 @@ var jsont; // JSONPコールバック関数公開用
 		}
 	};
 	
-	var tones = [
+	var notes = [
 		[
-			new Tone( 440, 0.1),
-			new Tone( 880, 3.0, 1.0),
-			new Tone( 880, 0.1)
+			new Note( 440, 0.1),
+			new Note( 880, 3.0, 1.0),
+			new Note( 880, 0.1)
 		], [
-			new Tone( 400, 0.25, 0.125),
-			new Tone( 800, 1.3,  0.65),
-			new Tone(1600, 0.1,  0.05)
+			new Note( 400, 0.25, 0.125),
+			new Note( 800, 1.3,  0.65),
+			new Note(1600, 0.1,  0.05)
 		], [
-			new Tone( 500, 0.2),
-			new Tone(1000, 1.8, 0),
-			new Tone(2000, 0.02)
+			new Note( 500, 0.2),
+			new Note(1000, 1.8, 0),
+			new Note(2000, 0.02)
 		]
 	];
 	
 	function signal(s, timeout) {
-		if (config.s) return;
+		if (config.s || speaking) return;
 		var time = context.currentTime + timeout / 1000 - latency;
-		var tone = tones[config.f];
+		var note = notes[config.f];
 		var quiet = true;
 		
 		if (s % config.d) {
 			if (!config.y) {
 				var r30 = 30 - s % 30;
 				if (!(r30 > config.a || (s + r30) % config.d)) {
-					tone[0].play(time);
+					note[0].on(time);
 					quiet = false;
 				}
 			}
 		} else {
-			tone[1].play(time);
+			note[1].on(time);
 			quiet = false;
 		}
 		if (!config.t && (quiet || config.m)) {
-			tone[2].play(time);
+			note[2].on(time);
 		}
 	}
 	
 	// アナウンス
 	
+	var utterance;
+	
 	var comma = '、';
 	var replacer = /~|\u301c|\uff5e/g;
 	
-	function speak(text) {
-		var utterance = new Utterance(text);
-		utterance.lang   = lang;
-		utterance.voice  = voice;
-		utterance.pitch  = params.pitch;
-		utterance.rate   = params.rate;
-		utterance.volume = params.volume;
-		
-		if (config.x && !config.s) {
-			utterance.onstart = mute;
-			utterance.onend   = unmute;
-			utterance.onerror = unmute;
-		}
-		synthesis.speak(utterance);
-	}
-	
 	function about(secs) {
-		date.setSeconds(date.getSeconds() + secs);
+		date.setSeconds(date.getSeconds() - secs);
 		var str = '';
 		var h = date.getHours();
 		var m = date.getMinutes();
@@ -972,48 +969,56 @@ var jsont; // JSONPコールバック関数公開用
 		}
 		return str;
 	}
-	
-	function announce(s) {
-		if (config.v || synthesis.speaking) return;
-		var p = -s % config.i, n = config.i + p;
-		
-		if (n == 8) {
+	function speech(p) {
+		var n = p - config.i;
+		if (n == -config.before) {
 			switch (config.n) {
-				case 0:
-				speak(about(n) + 'を' + comma + 'お伝えします');
-				return;
-				case 1:
-				speak(about(n) + 'を' + comma + 'お知らせします');
-				return;
-				case 2:
-				speak('まもなく' + comma + about(n) + 'です');
-				return;
-				case 3:
-				speak(about(n) + 'になります');
-				return;
+				case 0: return about(n) + 'を、お伝えします';
+				case 1: return about(n) + 'を、お知らせします';
+				case 2: return 'まもなく、' + about(n) + 'です';
+				case 3: return about(n) + 'になります';
 				case -1:
-				speak(config.next.replace(replacer, about(n)));
-				return;
+				return config.next.replace(replacer, about(n));
 			}
 		}
-		if (p == -2) {
+		if (p == config.after && !speaks()) {
 			switch (config.p) {
-				case 1:
-				speak(about(p) + 'を' + comma + 'お伝えしました');
-				return;
-				case 2:
-				speak(about(p) + 'を' + comma + 'お知らせしました');
-				return;
-				case 3:
-				speak(about(p) + 'です');
-				return;
-				case 4:
-				speak(about(p) + 'になりました');
-				return;
+				case 1: return about(p) + 'を、お伝えしました';
+				case 2: return about(p) + 'を、お知らせしました';
+				case 3: return about(p) + 'です';
+				case 4: return about(p) + 'になりました';
 				case -1:
-				speak(config.prev.replace(replacer, about(p)));
-				return;
+				return config.prev.replace(replacer, about(p));
 			}
+		}
+	}
+	
+	function onend() {
+		speaking = false;
+	}
+	function announce(s) {
+		if (utterance) {
+			if (!synthesis.speaking) {
+				synthesis.speak(utterance);
+			}
+			utterance = null;
+		}
+		if (config.v) return;
+		
+		var text = speech(s % config.i);
+		if (text == null) return;
+		
+		utterance = new Utterance(text);
+		utterance.lang   = lang;
+		utterance.voice  = voice;
+		utterance.pitch  = params.pitch;
+		utterance.rate   = params.rate;
+		utterance.volume = params.volume;
+		
+		speaking = config.x;
+		if (speaking) {
+			utterance.onend   = onend;
+			utterance.onerror = onend;
 		}
 	}
 	
@@ -1024,10 +1029,8 @@ var jsont; // JSONPコールバック関数公開用
 		window.setTimeout(tick, timeout);
 		
 		var next = now + timeout;
-		if (leaping && !stepped) {
-			if (next > (step < 0 ? leap : leap + step) - 8000) {
-				next -= step;
-			}
+		if (leaping && !stepped && next >= leap - 5000) {
+			next -= step;
 		}
 		
 		date.setTime(next);
