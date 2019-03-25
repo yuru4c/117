@@ -147,16 +147,16 @@ var jsont; // JSONPコールバック関数公開用
 	];
 	var wids = ['h0', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6'];
 	
+	function prev() {
+		return config.i != 10 || config.n == 4;
+	}
+	
 	function d(input, disabled) {
 		input.disabled = disabled;
 		input.parentNode.className = disabled ? dClass : '';
 	}
 	function dirty() {
 		button.disabled = false;
-	}
-	
-	function speaks() {
-		return config.i == 10 && config.n != 4;
 	}
 	
 	function disable() {
@@ -172,7 +172,7 @@ var jsont; // JSONPコールバック関数公開用
 		
 		d(inputs.i, config.v);
 		d(inputs.n, config.v);
-		d(inputs.p, config.v || speaks());
+		d(inputs.p, config.v || !prev());
 		d(inputs.j, config.v || config.i >= 3600);
 		d(inputs.z, config.v || config.i >=   60);
 		d(inputs.x, config.v);
@@ -978,7 +978,7 @@ var jsont; // JSONPコールバック関数公開用
 				return config.next.replace(replacer, about(n));
 			}
 		}
-		if (p == config.after && !speaks()) {
+		if (p == config.after && prev()) {
 			switch (config.p) {
 				case 1: return about(p) + 'を、お伝えしました';
 				case 2: return about(p) + 'を、お知らせしました';
