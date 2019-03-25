@@ -21,8 +21,7 @@ var jsont; // JSONPコールバック関数公開用
 			return key;
 		}
 		var uc = key.charAt(0).toUpperCase() + key.substr(1);
-		var l = vendors.length;
-		for (var i = 0; i < l; i++) {
+		for (var i = 0; i < vendors.length; i++) {
 			var prefixed = vendors[i] + uc;
 			if (prefixed in object) {
 				return prefixed;
@@ -321,13 +320,13 @@ var jsont; // JSONPコールバック関数公開用
 	function onvoiceschanged() {
 		var vs = this.getVoices();
 		var restore = false;
-		var sel = 0, length = vs.length, i;
+		var selection = 0, i;
 		
 		voices.length = 0;
 		for (i = select.length - 1; i >= 0; i--) {
 			select.remove(i);
 		}
-		for (i = 0; i < length; i++) {
+		for (i = 0; i < vs.length; i++) {
 			var v = vs[i];
 			var lang = v.lang;
 			if (lang && !langRe.test(lang)) continue;
@@ -343,17 +342,17 @@ var jsont; // JSONPコールバック関数公開用
 			
 			if (voiceURI != null && uri == voiceURI) {
 				restore = true;
-				sel = l;
+				selection = l;
 				voiceURI = null;
 			}
 			if (restore) continue;
 			restore = voice != null && uri == voice.voiceURI;
-			if (restore || !sel && def) {
-				sel = l;
+			if (restore || !selection && def) {
+				selection = l;
 			}
 		}
-		if (sel) {
-			select.selectedIndex = sel - 1;
+		if (selection) {
+			select.selectedIndex = selection - 1;
 		}
 		setVoice(!restore);
 	}
@@ -450,8 +449,7 @@ var jsont; // JSONPコールバック関数公開用
 	var sh = ' --', se = '=', ss = '-';
 	
 	function sets(ids, str) {
-		var l = ids.length;
-		for (var i = 0; i < l; i++) {
+		for (var i = 0; i < ids.length; i++) {
 			var id = ids[i];
 			switch (id) {
 				case 's':
@@ -559,8 +557,7 @@ var jsont; // JSONPコールバック関数公開用
 	
 	function gets(ids, flag) {
 		var flags = '';
-		var l = ids.length;
-		for (var i = 0; i < l; i++) {
+		for (var i = 0; i < ids.length; i++) {
 			if (config[ids[i]]) {
 				flag = true;
 				flags += c1;
@@ -1110,10 +1107,6 @@ var jsont; // JSONPコールバック関数公開用
 		refetch.onclick = start;
 		diffText = $.getElementById('diff').firstChild;
 		
-		var details = $.getElementById('details');
-		details.onclick = toggle;
-		details.onclick();
-		
 		leapText = $.getElementById('leap').lastChild;
 		lastText = $.getElementById('last').firstChild;
 		
@@ -1132,9 +1125,6 @@ var jsont; // JSONPコールバック関数公開用
 		for (id in config) {
 			register(id);
 		}
-		var advanced = $.getElementById('advanced');
-		advanced.onclick = toggle;
-		advanced.onclick();
 		
 		select = $.getElementById('voice');
 		for (id in params) {
@@ -1157,6 +1147,13 @@ var jsont; // JSONPコールバック関数公開用
 			synthesis.onvoiceschanged();
 			
 			select.onchange = onchange;
+		}
+		
+		var mores = $.getElementsByName('more');
+		for (var j = 0; j < mores.length; j++) {
+			var more = mores[j];
+			more.onclick = toggle;
+			more.onclick();
 		}
 		
 		$.onkeydown = onkeydown;
