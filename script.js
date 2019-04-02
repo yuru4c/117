@@ -868,11 +868,12 @@ var jsont; // JSONPコールバック関数公開用
 				(before ? t0 : t1).appendChild(bar);
 				pbefore = before;
 			}
-			bar.style.left = (before ? pos : pos - 30) + 'em';
+			var left = before ? pos : pos - 30;
+			bar.style.left = (left < 30 ? left : 30) + 'em';
 			
-			var p = ~~pos;
 			var active;
-			if (pos - p < pulse[code[p]]) {
+			var p = ~~pos;
+			if (p < cl && pos - p < pulse[code[p]]) {
 				active = timecodes[p];
 			}
 			if (active != pactive) {

@@ -176,6 +176,7 @@ tt, .monospace {
 
 .timecode {
 	margin: 1em 0 2em;
+	padding: 0 1px;
 }
 .timecode .item {
 	position: relative;
