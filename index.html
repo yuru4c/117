@@ -5,9 +5,9 @@
 	<meta name="viewport" content="width=device-width, initial-scale=1">
 	<meta name="format-detection" content="date=no">
 	
-	<title>オンライン 117 ver. 20190324</title>
+	<title>オンライン 117 ver. 20190331</title>
 	
-	<link rel="stylesheet" href="style.css?20190324">
+	<link rel="stylesheet" href="style.css?20190331">
 </head>
 <body>
 	
@@ -48,7 +48,7 @@
 				<span class="monospace" id="diff">0<!> ms</span>
 				<input type="checkbox" name="more">詳細
 			</label>
-			<div class="hidden">
+			<div>
 				<p class="message">
 					<span class="pre" id="leap">閏秒: <!>不明</span>
 					<span class="pre float" id="last">未取得</span>
@@ -293,7 +293,7 @@
 						<input type="checkbox" name="more">
 						詳細設定…
 					</label>
-					<div class="select hidden">
+					<div class="select">
 						<label>
 							声:
 							<select id="voice">
@@ -348,12 +348,36 @@
 			</div>
 		</div>
 		<div class="footer">
-			<input type="button" value="ヘルプ" id="help">
-			<input type="button" value="設定を保存" id="save">
+			<label>
+				<input type="checkbox" id="jjy">
+				標準電波
+			</label>
+			<span id="frequencies">
+				<label>
+					<input type="radio" name="frequency" value="40000" checked>40kHz
+				</label>
+				<label>
+					<input type="radio" name="frequency" value="60000">60kHz
+				</label>
+			</span>
+			<span class="buttons">
+				<input type="button" value="ヘルプ" id="help">
+				<input type="button" value="設定を保存" id="save">
+			</span>
+			<div class="clear"></div>
 		</div>
 	</div>
 	</div>
 	
-	<script type="text/javascript" src="script.js?20190324"></script>
+	<div class="scroll center timecode" id="timecode">
+		<div class="item">
+			<span class="axis"></span>
+		</div><!--
+		--><div class="item">
+			<span class="axis"></span>
+		</div>
+	</div>
+	
+	<script type="text/javascript" src="script.js?20190331"></script>
 </body>
 </html>

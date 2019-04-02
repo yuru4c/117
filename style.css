@@ -14,8 +14,8 @@ tt, .monospace {
 	text-align: center;
 }
 #title {
-	word-break: keep-all;
 	font-size: 2em;
+	word-break: keep-all;
 }
 #main span {
 	display: inline-block;
@@ -54,7 +54,7 @@ tt, .monospace {
 .center {
 	text-align: center;
 }
-.right, .select, .footer {
+.right, .select {
 	text-align: right;
 }
 .disabled, .note {
@@ -62,7 +62,7 @@ tt, .monospace {
 }
 
 #pref {
-	margin: 3em 0 1em;
+	margin-top: 3em;
 }
 .pref {
 	max-width: 100%;
@@ -77,7 +77,7 @@ tt, .monospace {
 .alt kbd {
 	text-decoration: underline;
 }
-.hide + .hidden {
+.hide + * {
 	display: none;
 }
 
@@ -157,8 +157,73 @@ tt, .monospace {
 }
 
 .footer {
-	line-height: 3;
+	margin: 0.5em 0;
+	line-height: 2;
 }
-.footer input {
+.footer label {
+	display: inline-block;
+}
+.buttons {
+	float: right;
+	margin-left: 0.5em;
+}
+.buttons input {
 	width: 7em;
+}
+.clear {
+	clear: both;
+}
+
+.timecode {
+	margin: 1em 0 2em;
+}
+.timecode .item {
+	position: relative;
+	display: inline-block;
+	font-size: 0.625em;
+	margin: 1em 0;
+	height: 4em;
+	z-index: 0;
+	white-space: nowrap;
+}
+.axis {
+	position: absolute;
+	top: 50%;
+	margin-top: -1px;
+	border-top: solid 2px gray;
+	width: 100%;
+	z-index: -1;
+	opacity: .5;
+}
+.bar {
+	position: absolute;
+	top: -1em;
+	margin-left: -1px;
+	height: 6em;
+	border-left: solid 2px black;
+}
+
+.timecode i {
+	display: inline-block;
+	margin-right: 1em;
+	height: 100%;
+	opacity: .5;
+}
+.timecode .code-0 {
+	width: 0.8em;
+	margin-right: 0.2em;
+	background-color: green;
+}
+.timecode .code-1 {
+	width: 0.5em;
+	margin-right: 0.5em;
+	background-color: orange;
+}
+.timecode .code-2 {
+	width: 0.2em;
+	margin-right: 0.8em;
+	background-color: red;
+}
+.timecode [data-active] {
+	opacity: 1;
 }
