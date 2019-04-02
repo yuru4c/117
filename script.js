@@ -485,6 +485,7 @@ var jsont; // JSONPコールバック関数公開用
 			var freq = freqs[i];
 			if (freq.checked) {
 				frequency = freq.value / 3;
+				return;
 			}
 		}
 	}
