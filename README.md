@@ -26,6 +26,7 @@
 
 ## リンク
 * 日本標準時(JST)グループ <http://jjy.nict.go.jp/tsp/PubNtp/index.html>
+* 標準電波の出し方 <http://jjy.nict.go.jp/jjy/trans/index.html>
 * JJYシミュレータ <http://www.starstonesoft.com/JJY_Simulator.htm>
 
 + ~~オフライン117（時報・音声時計） `http://www.yourname.jp/soft/offline117.shtml`~~

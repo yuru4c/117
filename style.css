@@ -184,7 +184,6 @@ tt, .monospace {
 	font-size: 0.625em;
 	margin: 1em 0;
 	height: 4em;
-	z-index: 0;
 	white-space: nowrap;
 }
 .axis {
@@ -193,7 +192,6 @@ tt, .monospace {
 	margin-top: -1px;
 	border-top: solid 2px gray;
 	width: 100%;
-	z-index: -1;
 	opacity: .5;
 }
 .bar {
@@ -205,6 +203,7 @@ tt, .monospace {
 }
 
 .timecode i {
+	position: relative;
 	display: inline-block;
 	margin-right: 1em;
 	height: 100%;
