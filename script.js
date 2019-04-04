@@ -223,12 +223,13 @@ var jsont; // JSONPコールバック関数公開用
 		for (var i = 0; i < code.length; i++) {
 			timecodes[i].className = '';
 		}
+		pcode = null;
+		
 		var parent = bar.parentNode;
 		if (parent) {
 			parent.removeChild(bar);
 			pt = null;
 		}
-		pcode = null;
 	}
 	
 	function oncheck() {
@@ -491,8 +492,10 @@ var jsont; // JSONPコールバック関数公開用
 	
 	// 読み込み・保存
 	
+	var cb = '\\', cq = '"';
+	var sb = cb + '$&';
 	var rs = /\s/, rb = /\\\\/g, rq = /\\"/g, re = /\\(?=\s|")/g;
-	var escb = /\\|"/g, escp = /%/g;
+	var ro = /\\|"/g, rp = /%/g;
 	
 	var c0 = '0', c1 = '1';
 	var sh = ' --', se = '=', ss = '-';
@@ -583,24 +586,25 @@ var jsont; // JSONPコールバック関数公開用
 		var i = 0;
 		for (var c; c = str.charAt(i); i++) {
 			if (rs.test(c)) continue;
-			var v = ''; var b = i;
+			var v = '';
+			var b = i;
 			do {
-				if (c == '\\') { i++; continue; }
+				if (c == cb) { i++; continue; }
 				if (rs.test(c)) break;
+				if (c != cq) continue;
 				
-				if (c != '"') continue;
 				v += str.substring(b, i).replace(re, '');
-				b = ++i;
-				for (var d; d = str.charAt(i); i++) {
-					if (d == '\\') { i++; continue; }
-					if (d == c) break;
+				b = i + 1;
+				while (c = str.charAt(++i)) {
+					if (c == cb) { i++; continue; }
+					if (c == cq) break;
 				}
-				v += str.substring(b, i).replace(rq, c);
+				v += str.substring(b, i).replace(rq, cq);
 				b = i + 1;
 			} while (c = str.charAt(++i));
 			v += str.substring(b, i).replace(re, '');
 			
-			set(v.replace(rb, '\\'));
+			set(v.replace(rb, cb));
 		}
 	}
 	
@@ -617,9 +621,9 @@ var jsont; // JSONPコールバック関数公開用
 		return flag ? flags : null;
 	}
 	function quote(str) {
-		return '"' + str
-			.replace(escb, '\\$&')
-			.replace(escp, '%25') + '"';
+		return cq + str
+			.replace(ro, sb)
+			.replace(rp, '%25') + cq;
 	}
 	
 	function save() {
@@ -1119,16 +1123,9 @@ var jsont; // JSONPコールバック関数公開用
 	var pcode;
 	
 	var pulse = [0.8, 0.5, 0.2];
-	var code = [
-		2, 0, 0, 0, 0, 0, 0, 0, 0, 2,
-		0, 0, 0, 0, 0, 0, 0, 0, 0, 2,
-		0, 0, 0, 0, 0, 0, 0, 0, 0, 2,
-		0, 0, 0, 0, 0, 0, 0, 0, 0, 2,
-		0, 0, 0, 0, 0, 0, 0, 0, 0, 2,
-		0, 0, 0, 0, 0, 0, 0, 0, 0, 2
-	];
+	var code = [];
 	
-	function w(value, place, index, length) {
+	function put(value, place, index, length) {
 		var pa = 0;
 		var digit = ~~(value / place) % 10;
 		for (var i = 0; i < length; i++) {
@@ -1151,23 +1148,19 @@ var jsont; // JSONPコールバック関数公開用
 		var d = -~((next - date.setFullYear(y)) / 86400000);
 		y %= 100;
 		
-		code[37] = w(m, 10,  1, 3) ^ w(m, 1,  5, 4);
-		code[36] = w(h, 10, 12, 2) ^ w(h, 1, 15, 4);
+		code[37] = put(m, 10,  1, 3) ^ put(m, 1,  5, 4);
+		code[36] = put(h, 10, 12, 2) ^ put(h, 1, 15, 4);
 		
-		w(d, 100, 22, 2);
-		w(d,  10, 25, 4);
-		w(d,   1, 30, 4);
+		put(d, 100, 22, 2);
+		put(d,  10, 25, 4);
+		put(d,   1, 30, 4);
 		
-		w(y, 10, 41, 4);
-		w(y,  1, 45, 4);
+		put(y, 10, 41, 4);
+		put(y,  1, 45, 4);
 		
-		w(e, 1, 50, 3);
+		put(e, 1, 50, 3);
 		code[53] = ls ? 1 : 0;
 		code[54] = ls && step > 0 ? 1 : 0;
-		
-		if (pcode == null) {
-			changed = true;
-		}
 	}
 	
 	function jjy(next, time) {
@@ -1183,13 +1176,17 @@ var jsont; // JSONPコールバック関数公開用
 				flag = false;
 			}
 		}
+		if (flag) return;
 		
 		var s = next / 1000, i = s % 60, t = (s - i) / 60;
 		if (t != pcode) {
 			newcode(next);
+			
+			if (pcode == null) {
+				changed = true;
+			}
 			pcode = t;
 		}
-		if (flag) return;
 		
 		var oscillator = context.createOscillator();
 		oscillator.type = 'square';
@@ -1251,9 +1248,11 @@ var jsont; // JSONPコールバック関数公開用
 		logTexts[i] = logText;
 	}
 	
-	for (var j = 0; j < code.length; j++) {
+	for (var j = 0; j < 60; j++) {
+		code[j] = j % 10 == 9 ? 2 : 0;
 		timecodes[j] = $.createElement('i');
 	}
+	code[0] = 2;
 	bar = $.createElement('span');
 	bar.className = 'bar';
 	

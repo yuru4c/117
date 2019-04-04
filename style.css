@@ -42,7 +42,7 @@ tt, .monospace {
 }
 .item {
 	display: inline-block;
-	vertical-align: top;
+	vertical-align: text-top;
 	text-align: left;
 }
 .pre {
@@ -61,10 +61,10 @@ tt, .monospace {
 	color: gray;
 }
 
-#pref {
+.pref {
 	margin-top: 3em;
 }
-.pref {
+.pref .it {
 	max-width: 100%;
 	font-size: smaller;
 }
@@ -175,13 +175,16 @@ tt, .monospace {
 }
 
 .timecode {
-	margin: 1em 0 2em;
+	margin: 1em 0;
+}
+.timecode .it {
+	display: inline-block;
 	padding: 0 1px;
+	vertical-align: middle;
+	font-size: 0.625em;
 }
 .timecode .item {
 	position: relative;
-	display: inline-block;
-	font-size: 0.625em;
 	margin: 1em 0;
 	height: 4em;
 	white-space: nowrap;
@@ -199,7 +202,7 @@ tt, .monospace {
 	top: -1em;
 	margin-left: -1px;
 	height: 6em;
-	border-left: solid 2px black;
+	border-left: solid 2px;
 }
 
 .timecode i {
