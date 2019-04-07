@@ -40,21 +40,35 @@ tt, .monospace {
 	overflow-x: auto;
 	overflow-y: hidden;
 }
-.item {
-	display: inline-block;
-	vertical-align: text-top;
+.align > * {
+	display: inline-block !important;
 	text-align: left;
-}
-.pre {
-	white-space: pre;
+	vertical-align: text-top;
 }
 .size {
 	box-sizing: border-box;
 }
+.float {
+	float: right;
+}
+.clear {
+	display: block;
+	clear: right;
+}
+
+.sans {
+	font-family: sans-serif;
+}
+.em {
+	font-style: oblique;
+}
+.pre {
+	white-space: pre;
+}
 .center {
 	text-align: center;
 }
-.right, .select {
+.right, .selects {
 	text-align: right;
 }
 .disabled, .note {
@@ -62,11 +76,14 @@ tt, .monospace {
 }
 
 .pref {
-	margin-top: 3em;
+	margin-top: 2em;
 }
-.pref .it {
+.pref > * {
 	max-width: 100%;
 	font-size: smaller;
+}
+.pref label {
+	display: inline-block;
 }
 .pref input, .pref select {
 	font-size: 1em;
@@ -77,34 +94,19 @@ tt, .monospace {
 .alt kbd {
 	text-decoration: underline;
 }
-.hide + * {
-	display: none;
-}
 
 .ntp {
 	white-space: nowrap;
 }
-.ntp label {
-	display: inline-block;
-}
-.message {
-	margin: 0.5em 1em;
+.ntp p {
+	margin: 0.5em 0;
 	line-height: 1.2;
-	font-family: sans-serif;
+	text-indent: 1em;
 	white-space: normal;
 }
-.message label {
+.ntp p ~ label {
 	display: block;
-	line-height: 1.5;
-	white-space: nowrap;
-}
-.float {
-	float: right;
-	margin-left: 1.2em;
-}
-.float + * {
-	clear: both;
-	margin-top: 0.5em;
+	margin-left: 1em;
 }
 
 .container, .container fieldset {
@@ -113,120 +115,109 @@ tt, .monospace {
 .container fieldset {
 	white-space: nowrap;
 }
-.container label, .container span,
-.container .note {
+.container label, .selects span {
 	display: block;
-	line-height: 1.5;
 }
 
-.select label, .select span {
+.selects {
 	line-height: 2;
 }
-.select select, .select input, .box {
+.selects select, .selects input, .param {
 	width: 14em;
 }
-.select .small {
+.selects .small {
 	width: 7em;
 }
-.select + * {
+.selects + * {
 	margin-top: 0.25em;
 }
 
-.holidays span {
-	float: left;
-}
-.holidays label {
-	display: inline-block;
-	text-align: center;
-}
-.holidays input {
-	display: block;
-}
-
-.select .box {
+.selects .param {
 	display: inline-block;
 	text-align: left;
 }
-.box input {
+.param input {
 	width: 3.5em;
 }
-.box input + input {
+.param input + input {
 	padding: 0;
 	width: 9em;
 	vertical-align: middle;
 }
+.selects .note {
+	line-height: normal;
+}
+
+.holidays label {
+	text-align: center;
+}
+.hidden {
+	display: inline-block;
+	width: 0;
+	visibility: hidden;
+}
 
 .footer {
-	margin: 0.5em 0;
+	margin: 0.625em 0;
 	line-height: 2;
 }
 .footer label {
-	display: inline-block;
+	line-height: normal;
 }
 .buttons {
-	float: right;
-	margin-left: 0.5em;
+	margin-left: 1em;
 }
 .buttons input {
 	width: 7em;
-}
-.clear {
-	clear: both;
 }
 
 .timecode {
 	margin: 1em 0;
 }
-.timecode .it {
-	display: inline-block;
+.timecode > * {
 	padding: 0 1px;
-	vertical-align: middle;
 	font-size: 0.625em;
 }
-.timecode .item {
+.divs div {
 	position: relative;
 	margin: 1em 0;
 	height: 4em;
 	white-space: nowrap;
 }
-.axis {
+
+.divs div:before {
+	content: '';
 	position: absolute;
 	top: 50%;
 	margin-top: -1px;
-	border-top: solid 2px gray;
+	border-top: solid 2px lightgray;
 	width: 100%;
-	opacity: .5;
 }
 .bar {
 	position: absolute;
-	top: -1em;
+	top:    -1em;
+	bottom: -1em;
 	margin-left: -1px;
-	height: 6em;
 	border-left: solid 2px;
 }
 
-.timecode i {
+.timecode span {
 	position: relative;
 	display: inline-block;
-	margin-right: 1em;
+	box-sizing: border-box;
 	height: 100%;
+	width: 1em;
 	opacity: .5;
 }
-.timecode .code-0 {
-	width: 0.8em;
-	margin-right: 0.2em;
-	background-color: green;
-}
-.timecode .code-1 {
-	width: 0.5em;
-	margin-right: 0.5em;
-	background-color: orange;
-}
-.timecode .code-2 {
-	width: 0.2em;
-	margin-right: 0.8em;
-	background-color: red;
-}
-.timecode [data-active] {
+.timecode .active {
 	opacity: 1;
+}
+.code-0 {
+	border-left: solid 0.8em green;
+}
+.code-1 {
+	border-left: solid 0.5em orange;
+}
+.code-2 {
+	border-left: solid 0.2em red;
 }

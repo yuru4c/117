@@ -78,7 +78,6 @@ var jsont; // JSONPコールバック関数公開用
 	// 設定画面
 	
 	var pref; // #pref要素
-	var prefClass, altClass;
 	
 	var refetch;  // #refetch要素 再取得ボタン
 	var diffText, leapText, lastText; // 補正, 閏秒, 最終更新 TextNode
@@ -102,7 +101,14 @@ var jsont; // JSONPコールバック関数公開用
 	}
 	
 	function toggle() {
-		this.parentNode.className = this.checked ? '' : 'hide';
+		var node = this.parentNode.nextSibling;
+		while (node != null) {
+			if (node.nodeType == 1) {
+				node.style.display = this.checked ? '' : 'none';
+				break;
+			}
+			node = node.nextSibling;
+		}
 	}
 	
 	function focused() {
@@ -115,7 +121,7 @@ var jsont; // JSONPコールバック関数公開用
 	// 設定
 	
 	var config = {
-		s: true, d: 10, f: 2,
+		s: false, d: 10, f: 2,
 		t: false, m: true,
 		y: false, a: 3,
 		
@@ -123,7 +129,7 @@ var jsont; // JSONPコールバック関数公開用
 		h0: false, h1: false, h2: false, h3: false,
 		h4: false, h5: false, h6: false,
 		
-		v: true, i: 10, n: 1, p: 0,
+		v: false, i: 10, n: 1, p: 0,
 		j: false, z: true,
 		x: false,
 		l: false, g: false, r: false,
@@ -141,12 +147,8 @@ var jsont; // JSONPコールバック関数公開用
 	var inputs = {};
 	var button;
 	
-	var ts;
-	var timecodes = [];
-	var bar;
-	
 	var inputTag = 'INPUT', selectTag = 'SELECT';
-	var dClass = 'disabled';
+	var dClass = 'disabled', emClass = 'em';
 	
 	var xids = [
 		's', 'v', 't', 'm', 'y',
@@ -159,9 +161,21 @@ var jsont; // JSONPコールバック関数公開用
 	}
 	
 	function d(input, disabled) {
-		input.disabled = disabled;
+		if (disabled == null) {
+			disabled = input.disabled;
+		} else {
+			input.disabled = disabled;
+		}
 		input.parentNode.className = disabled ? dClass : '';
 	}
+	function em(input, not) {
+		if (not) return;
+		var parent = input.parentNode;
+		var className = parent.className;
+		parent.className = className ?
+			className + ' ' + emClass : emClass;
+	}
+	
 	function disable() {
 		d(inputs.d, config.s);
 		d(inputs.f, config.s);
@@ -184,13 +198,17 @@ var jsont; // JSONPコールバック関数公開用
 		d(inputs.c, config.v);
 		d(inputs.w, config.v);
 		
+		d(select, config.v);
+		for (var id in binds) {
+			binds[id].disable(config.v);
+		}
 		d(inputs.before, config.v);
 		d(inputs.after,  config.v);
-		d(inputs.next, config.n != -1);
-		d(inputs.prev, config.p != -1);
+		d(inputs.next, config.v || config.n != -1);
+		d(inputs.prev, config.v || config.p != -1);
 		
-		for (var i = 0; i < freqs.length; i++) {
-			d(freqs[i], !config.jjy);
+		for (var i = 0; i < radios.length; i++) {
+			d(radios[i], !config.jjy);
 		}
 	}
 	
@@ -221,12 +239,13 @@ var jsont; // JSONPコールバック関数公開用
 	
 	function reset() {
 		for (var i = 0; i < code.length; i++) {
-			timecodes[i].className = '';
+			pulses[i].className = '';
 		}
+		active = null;
 		pcode = null;
 		
 		var parent = bar.parentNode;
-		if (parent) {
+		if (parent != null) {
 			parent.removeChild(bar);
 			pt = null;
 		}
@@ -257,12 +276,18 @@ var jsont; // JSONPコールバック関数公開用
 			}
 			break;
 		}
+		
 		config[this.id] = this.checked;
 		disable();
-		
 		switch (this.id) {
-			case 'jjy': break;
-			default: dirty(); break;
+			case 'jjy':
+			break;
+			
+			case 's': case 'v':
+			d(this);
+			
+			default:
+			dirty();
 		}
 	}
 	function onselect() {
@@ -305,7 +330,7 @@ var jsont; // JSONPコールバック関数公開用
 	}
 	
 	function alt(altKey) {
-		pref.className = altKey ? altClass : prefClass;
+		pref.className = altKey ? 'alt' : '';
 	}
 	
 	function onkeydown(event) {
@@ -344,11 +369,13 @@ var jsont; // JSONPコールバック関数公開用
 	var voices = [];
 	var voice;
 	
-	var params = {pitch: null, rate: null, volume: null};
+	var params = {volume: null, rate: null, pitch: null};
 	var binds = {};
 	
-	var freqs;
 	var frequency;
+	var radios;
+	var codes = [], pulses = [];
+	var bar;
 	
 	function setVoice(changed) {
 		voice = voices[select.selectedIndex];
@@ -403,7 +430,7 @@ var jsont; // JSONPコールバック関数公開用
 	}
 	
 	function count(str) {
-		if (str) {
+		if (str != null) {
 			var point = str.indexOf('.');
 			if (point != -1) {
 				return str.length - point - 1;
@@ -425,15 +452,19 @@ var jsont; // JSONPコールバック関数公開用
 		}
 	}
 	
-	function Bind(id, disabled) {
+	function Bind(id) {
 		var param = params[id];
 		
-		var box = $.getElementById(id);
-		var inputs = box.getElementsByTagName('input');
+		var span = $.getElementById(id);
+		this.parent = span.parentNode;
+		
+		var inputs = span.getElementsByTagName('input');
 		this.input = inputs[0];
 		this.range = inputs[1];
 		
 		this.value = +this.range.defaultValue;
+		this.min   = +this.range.min;
+		this.max   = +this.range.max;
 		this.digits = count(this.range.step);
 		
 		if (param == null) {
@@ -442,23 +473,15 @@ var jsont; // JSONPコールバック関数公開用
 		this.input.value = toFixed(param, this.digits);
 		this.range.value = param;
 		
-		if (disabled) {
-			this.input.disabled = true;
-			this.range.disabled = true;
-			box.parentNode.className = dClass;
-			return;
-		}
-		this.min = +this.range.min;
-		this.max = +this.range.max;
-		
 		this.input.placeholder = this.value.toFixed(this.digits);
 		this.input.onfocus = onfocus;
 		
-		box.oninput  = handler;
-		box.onchange = handler;
+		span.oninput  = handler;
+		span.onchange = handler;
 	}
+	var bind = Bind.prototype;
 	
-	Bind.prototype.handle = function (target, done) {
+	bind.handle = function (target, done) {
 		var value = parseFloat(target.value);
 		switch (target.type) {
 			case 'range':
@@ -480,11 +503,17 @@ var jsont; // JSONPコールバック関数公開用
 		}
 	};
 	
-	function onfreqchange() {
-		for (var i = 0; i < freqs.length; i++) {
-			var freq = freqs[i];
-			if (freq.checked) {
-				frequency = freq.value / 3;
+	bind.disable = function (disabled) {
+		this.input.disabled = disabled;
+		this.range.disabled = disabled;
+		this.parent.className = disabled ? dClass : '';
+	};
+	
+	function onclick() {
+		for (var i = 0; i < radios.length; i++) {
+			var radio = radios[i];
+			if (radio.checked) {
+				frequency = radio.value * 1000 / 3;
 				return;
 			}
 		}
@@ -502,12 +531,7 @@ var jsont; // JSONPコールバック関数公開用
 	
 	function sets(ids, str) {
 		for (var i = 0; i < ids.length; i++) {
-			var id = ids[i];
-			switch (id) {
-				case 's':
-				case 'v': continue;
-			}
-			config[id] = str.charAt(i) == c1;
+			config[ids[i]] = str.charAt(i) == c1;
 		}
 	}
 	function intOf(str, defaultValue) {
@@ -532,7 +556,7 @@ var jsont; // JSONPコールバック関数公開用
 			voiceURI = value;
 			break;
 			
-			case 'volume': case 'pitch': case 'rate':
+			case 'volume': case 'rate': case 'pitch':
 			var f = parseFloat(value);
 			if (isNaN(f)) break;
 			params[key] = f;
@@ -637,45 +661,45 @@ var jsont; // JSONPコールバック関数公開用
 		if (config.a != 3) {
 			hash += ' -a' + config.a;
 		}
-		
 		hash += ' -n' + config.n;
 		hash += ' -p' + config.p;
-		
 		hash += ' -s' + config.d;
 		hash += ' -v' + config.i;
 		
 		if (config.k) {
-			hash += ' -q' + config.k1 + ss + config.k2;
+			hash += ' -q' + (config.k1 + ss + config.k2);
 		}
 		
 		if (!config.ntp) {
 			hash += sh + 'off';
 		}
-		if (!config.v && (config.before != 9 || config.after != 1)) {
-			hash += sh + 'timing' + se + config.before + ss + config.after;
-		}
 		
-		if (params.volume != 1) {
-			hash += sh + 'volume' + se + params.volume;
+		if (config.before != 9 || config.after != 1) {
+			hash += sh + 'timing' + se +
+				(config.before + ss + config.after);
 		}
-		if (params.pitch != 1) {
-			hash += sh + 'pitch' + se + params.pitch;
+		if (!config.v) {
+			for (var id in params) {
+				var param = params[id];
+				if (param != 1) {
+					hash += sh + id + se + param;
+				}
+			}
+			if (voice != null) {
+				hash += sh + 'voice' + se + quote(voice.voiceURI);
+			}
 		}
-		if (params.rate != 1) {
-			hash += sh + 'rate' + se + params.rate;
-		}
-		if (voice != null) {
-			hash += sh + 'voice' + se + quote(voice.voiceURI);
-		}
-		
-		if (config.n == -1 && config.next) {
+		if (config.n == -1) {
 			hash += sh + 'next' + se + quote(config.next);
 		}
-		if (config.p == -1 && config.prev) {
+		if (config.p == -1) {
 			hash += sh + 'prev' + se + quote(config.prev);
 		}
 		
 		location.hash = hash;
+		
+		d(inputs.s);
+		d(inputs.v);
 		this.disabled = true;
 	}
 	
@@ -832,11 +856,11 @@ var jsont; // JSONPコールバック関数公開用
 	
 	var h12;
 	var titleText, hrs, mins, secs, ms; // TextNodes
-	var activeAttr = 'data-active';
 	
 	var pm, ps, pt; // 前の値 (上位含む)
 	var pstep, changed;
-	var pactive;
+	var active;
+	var original;
 	
 	var refreshId;
 	
@@ -872,34 +896,36 @@ var jsont; // JSONPコールバック関数公開用
 		
 		if (config.jjy) {
 			for (var i = 0; i < code.length; i++) {
-				timecodes[i].className = 'code-' + code[i];
+				pulses[i].className = 'code-' + code[i];
 			}
+			active = null;
 		}
 	}
 	
 	function progress(pos) {
-		var pl = pos * ts.length;
-		var t = stepped ? ts.length - 1 : ~~(pl / 60000);
+		var pl = pos * codes.length;
+		var t = stepped ? codes.length - 1 : ~~(pl / 60000);
 		if (t != pt) {
-			ts[t].appendChild(bar);
+			codes[t].appendChild(bar);
 			pt = t;
 		}
 		bar.style.left = pl / 600 - 100 * t + '%';
 		
-		var active;
+		var current;
 		var s = pos / 1000;
-		var p = ~~s;
-		if (p < code.length && s - p < pulse[code[p]]) {
-			active = timecodes[p];
+		var i = ~~s;
+		if (i < code.length && s - i < pulse[code[i]]) {
+			current = pulses[i];
 		}
-		if (active != pactive) {
-			if (pactive) {
-				pactive.removeAttribute(activeAttr);
+		if (current != active) {
+			if (active != null) {
+				active.className = original;
 			}
-			if (active) {
-				active.setAttribute(activeAttr, activeAttr);
+			if (current != null) {
+				original = current.className;
+				current.className = original + ' active';
 			}
-			pactive = active;
+			active = current;
 		}
 	}
 	
@@ -1107,9 +1133,9 @@ var jsont; // JSONPコールバック関数公開用
 		utterance = new Utterance(text);
 		utterance.lang   = lang;
 		utterance.voice  = voice;
-		utterance.pitch  = params.pitch;
-		utterance.rate   = params.rate;
 		utterance.volume = params.volume;
+		utterance.rate   = params.rate;
+		utterance.pitch  = params.pitch;
 		
 		speaking = config.x;
 		if (speaking) {
@@ -1250,13 +1276,17 @@ var jsont; // JSONPコールバック関数公開用
 	
 	for (var j = 0; j < 60; j++) {
 		code[j] = j % 10 == 9 ? 2 : 0;
-		timecodes[j] = $.createElement('i');
+		pulses[j] = $.createElement('span');
 	}
 	code[0] = 2;
-	bar = $.createElement('span');
+	bar = $.createElement('i');
 	bar.className = 'bar';
 	
 	load();
+	var ns = config.s;
+	var nv = config.v;
+	config.s = true;
+	config.v = true;
 	
 	function init() {
 		$.onreadystatechange = null;
@@ -1290,8 +1320,6 @@ var jsont; // JSONPコールバック関数公開用
 		// 設定画面
 		
 		pref = $.getElementById('pref');
-		prefClass = pref.className;
-		altClass = prefClass + ' alt';
 		
 		// 時刻補正
 		refetch = $.getElementById('refetch');
@@ -1309,43 +1337,42 @@ var jsont; // JSONPコールバック関数公開用
 		log.removeChild(log.firstChild);
 		
 		// 設定
-		var noAC = AudioContext == null;
-		var noSS = synthesis    == null;
 		
 		var id;
 		for (id in config) {
 			register(id);
 		}
-		
 		select = $.getElementById('voice');
 		for (id in params) {
-			binds[id] = new Bind(id, noSS);
+			binds[id] = new Bind(id);
 		}
 		
-		freqs = $.getElementsByName('frequency');
+		radios = $.getElementsByName('frequency');
 		
 		$.getElementById('help').onclick = help;
 		button = $.getElementById('save');
 		button.onclick = save;
 		
-		disable();
-		if (noAC) {
+		if (AudioContext == null) {
 			d(inputs.s,   true);
 			d(inputs.jjy, true);
 		} else {
-			var freq = $.getElementById('frequencies');
-			freq.onclick = onfreqchange;
-			freq.onclick();
+			$.getElementById('frequencies').onclick = onclick;
+			onclick();
 		}
-		if (noSS) {
+		
+		if (synthesis == null) {
 			d(inputs.v, true);
-			d(select,   true);
 		} else {
 			synthesis.onvoiceschanged = onvoiceschanged;
 			synthesis.onvoiceschanged();
 			
 			select.onchange = onchange;
 		}
+		
+		disable();
+		em(inputs.s, ns);
+		em(inputs.v, nv);
 		
 		var mores = $.getElementsByName('more');
 		for (var j = 0; j < mores.length; j++) {
@@ -1355,13 +1382,15 @@ var jsont; // JSONPコールバック関数公開用
 		}
 		
 		var timecode = $.getElementById('timecode');
-		ts = timecode.getElementsByTagName('div');
-		var tl = timecodes.length / ts.length;
-		for (var k = 0, kt = 0; kt < ts.length; kt++) {
-			var t = ts[kt];
-			for (var kl = tl * (kt + 1); k < kl; k++) {
-				t.appendChild(timecodes[k]);
+		var divs = timecode.getElementsByTagName('div');
+		
+		var n = pulses.length / divs.length;
+		for (var k = 0, l = 0; l < divs.length; l++) {
+			var div = divs[l];
+			for (var m = n * (l + 1); k < m; k++) {
+				div.appendChild(pulses[k]);
 			}
+			codes[l] = div;
 		}
 		
 		$.onkeydown = onkeydown;

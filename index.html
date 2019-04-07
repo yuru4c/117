@@ -2,12 +2,13 @@
 <html lang="ja-JP">
 <head>
 	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+	<meta http-equiv="Content-Style-Type" content="text/css">
 	<meta name="viewport" content="width=device-width, initial-scale=1">
 	<meta name="format-detection" content="date=no">
 	
-	<title>オンライン 117 ver. 20190331</title>
+	<title>オンライン 117 ver. 20190407</title>
 	
-	<link rel="stylesheet" href="style.css?20190331">
+	<link rel="stylesheet" href="style.css?20190407">
 </head>
 <body>
 	
@@ -37,38 +38,39 @@
 	
 	<!-- 設定画面 -->
 	
-	<div class="scroll center pref">
-	<div class="item it" id="pref">
+	<div class="scroll align center pref">
+	<div id="pref">
 		<div class="ntp">
 			<span>
 				時刻補正:
 				<input type="button" value=" 取得 " id="refetch">
 			</span>
-			<label class="hide">
+			<label>
 				<span class="monospace" id="diff">0<!> ms</span>
 				<input type="checkbox" name="more">詳細
 			</label>
 			<div>
-				<p class="message">
+				<p class="sans">
 					<span class="pre" id="leap">閏秒: <!>不明</span>
 					<span class="pre float" id="last">未取得</span>
-					<label>
-						<input type="checkbox" id="ntp">
-						読み込み時に自動的に取得する
-					</label>
+					<i class="clear"></i>
 				</p>
+				<label>
+					<input type="checkbox" id="ntp">
+					読み込み時に自動的に取得する
+				</label>
 				<ol class="scroll monospace" id="log"><li></li></ol>
 			</div>
 		</div>
-		<div class="center container">
-			<div class="item">
+		<div class="align center container">
+			<div>
 				<fieldset>
 					<legend>発振音</legend>
 					<label>
 						<input type="checkbox" id="s">
 						発振音なし(<kbd>S</kbd>)
 					</label>
-					<div class="select">
+					<div class="selects">
 						<label>
 							間隔(<kbd>D</kbd>):
 							<select id="d">
@@ -115,7 +117,7 @@
 						<input type="checkbox" id="y">
 						予告音（30秒毎低音）を演奏しない(<kbd>Y</kbd>)
 					</label>
-					<div class="select">
+					<div class="selects">
 						<label>
 							予告音の回数(<kbd>A</kbd>):
 							<select class="small" id="a">
@@ -132,7 +134,7 @@
 						<input type="checkbox" id="k">
 						次の時間帯に、時報を休止する(<kbd>K</kbd>)
 					</label>
-					<div class="select">
+					<div class="selects">
 						<span>
 							<select class="small" id="k1">
 								<option value="0">0時1分</option>
@@ -189,26 +191,29 @@
 							</select>
 						</span>
 					</div>
-					<div class="holidays">
-						<span class="pre">定休日(<kbd>H</kbd>): </span>
-						<label><input type="checkbox" id="h0">日</label>
-						<label><input type="checkbox" id="h1">月</label>
-						<label><input type="checkbox" id="h2">火</label>
-						<label><input type="checkbox" id="h3">水</label>
-						<label><input type="checkbox" id="h4">木</label>
-						<label><input type="checkbox" id="h5">金</label>
-						<label><input type="checkbox" id="h6">土</label>
+					<div class="align holidays">
+						<span>
+							<i class="hidden"><input type="checkbox"></i><!--
+							-->定休日(<kbd>H</kbd>):
+						</span>
+						<label><input type="checkbox" id="h0"><br>日</label>
+						<label><input type="checkbox" id="h1"><br>月</label>
+						<label><input type="checkbox" id="h2"><br>火</label>
+						<label><input type="checkbox" id="h3"><br>水</label>
+						<label><input type="checkbox" id="h4"><br>木</label>
+						<label><input type="checkbox" id="h5"><br>金</label>
+						<label><input type="checkbox" id="h6"><br>土</label>
 					</div>
 				</fieldset>
 			</div>
-			<div class="item">
+			<div>
 				<fieldset>
 					<legend>アナウンス</legend>
 					<label>
 						<input type="checkbox" id="v">
 						アナウンスなし(<kbd>V</kbd>)
 					</label>
-					<div class="select">
+					<div class="selects">
 						<label>
 							間隔(<kbd>I</kbd>):
 							<select id="i">
@@ -289,11 +294,11 @@
 						<input type="checkbox" id="w">
 						毎正時に、曜日を読み上げる(<kbd>W</kbd>)
 					</label>
-					<label class="hide">
+					<label>
 						<input type="checkbox" name="more">
 						詳細設定…
 					</label>
-					<div class="select">
+					<div class="selects">
 						<label>
 							声:
 							<select id="voice">
@@ -302,21 +307,21 @@
 						</label>
 						<label>
 							音量:
-							<span class="box" id="volume">
+							<span class="param" id="volume">
 								<input class="right size">
 								<input type="range" value="1" step="0.05" min="0" max="1">
 							</span>
 						</label>
 						<label>
 							音程:
-							<span class="box" id="pitch">
+							<span class="param" id="pitch">
 								<input class="right size">
 								<input type="range" value="1" step="0.1" min="0" max="2">
 							</span>
 						</label>
 						<label>
 							速度:
-							<span class="box" id="rate">
+							<span class="param" id="rate">
 								<input class="right size">
 								<input type="range" value="1" step="0.1" min="0.1" max="10">
 							</span>
@@ -354,32 +359,27 @@
 			</label>
 			<span id="frequencies">
 				<label>
-					<input type="radio" name="frequency" value="40000" checked>40kHz
+					<input type="radio" name="frequency" value="40" checked>40kHz
 				</label>
 				<label>
-					<input type="radio" name="frequency" value="60000">60kHz
+					<input type="radio" name="frequency" value="60">60kHz
 				</label>
 			</span>
-			<span class="buttons">
+			<span class="float buttons">
 				<input type="button" value="ヘルプ" id="help">
 				<input type="button" value="設定を保存" id="save">
 			</span>
-			<div class="clear"></div>
+			<i class="clear"></i>
 		</div>
 	</div>
 	</div>
 	
-	<div class="scroll center timecode">
-		<div class="it" id="timecode">
-			<div class="item">
-				<span class="axis"></span>
-			</div><!--
-			--><div class="item">
-				<span class="axis"></span>
-			</div>
+	<div class="scroll align center timecode">
+		<div class="align center divs" id="timecode">
+			<div></div><div></div>
 		</div>
 	</div>
 	
-	<script type="text/javascript" src="script.js?20190331"></script>
+	<script type="text/javascript" src="script.js?20190407"></script>
 </body>
 </html>
