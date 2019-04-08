@@ -79,7 +79,7 @@ var jsont; // JSONPコールバック関数公開用
 	
 	var pref; // #pref要素
 	
-	var refetch;  // #refetch要素 再取得ボタン
+	var refetch; // #refetch要素 再取得ボタン
 	var diffText, leapText, lastText; // 補正, 閏秒, 最終更新 TextNode
 	var lis = [];      // 時刻補正ログ li要素[]
 	var logTexts = []; // 時刻補正ログ TextNode[]
@@ -374,8 +374,6 @@ var jsont; // JSONPコールバック関数公開用
 	
 	var frequency;
 	var radios;
-	var codes = [], pulses = [];
-	var bar;
 	
 	function setVoice(changed) {
 		voice = voices[select.selectedIndex];
@@ -750,7 +748,7 @@ var jsont; // JSONPコールバック関数公開用
 	// コールバック関数
 	function jsonp(json) {
 		var receivedDate = new Date(); // 受信時刻 直ちに取得
-		var it           = json.it; // Initiated Time (秒)
+		var it = json.it; // Initiated Time (秒)
 		if (it != lastIt) return; // 待機中の応答でなければ無視
 		
 		window.clearTimeout(timeoutId); // タイムアウト解除
@@ -912,10 +910,12 @@ var jsont; // JSONPコールバック関数公開用
 		bar.style.left = pl / 600 - 100 * t + '%';
 		
 		var current;
-		var s = pos / 1000;
-		var i = ~~s;
-		if (i < code.length && s - i < pulse[code[i]]) {
-			current = pulses[i];
+		if (!stepped) {
+			var s = pos / 1000;
+			var i = ~~s;
+			if (s - i < pulse[code[i]]) {
+				current = pulses[i];
+			}
 		}
 		if (current != active) {
 			if (active != null) {
@@ -1146,10 +1146,12 @@ var jsont; // JSONPコールバック関数公開用
 	
 	// JJY
 	
-	var pcode;
-	
 	var pulse = [0.8, 0.5, 0.2];
 	var code = [];
+	var pcode;
+	
+	var codes = [], pulses = [];
+	var bar;
 	
 	function put(value, place, index, length) {
 		var pa = 0;

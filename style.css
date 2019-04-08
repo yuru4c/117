@@ -98,13 +98,13 @@ tt, .monospace {
 .ntp {
 	white-space: nowrap;
 }
-.ntp p {
+.ntp div p {
 	margin: 0.5em 0;
 	line-height: 1.2;
 	text-indent: 1em;
 	white-space: normal;
 }
-.ntp p ~ label {
+.ntp div label {
 	display: block;
 	margin-left: 1em;
 }
