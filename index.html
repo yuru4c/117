@@ -6,9 +6,9 @@
 	<meta name="viewport" content="width=device-width, initial-scale=1">
 	<meta name="format-detection" content="date=no">
 	
-	<title>オンライン 117 ver. 20190407</title>
+	<title>オンライン 117 ver. 20190408</title>
 	
-	<link rel="stylesheet" href="style.css?20190407">
+	<link rel="stylesheet" href="style.css?20190408">
 </head>
 <body>
 	
@@ -55,6 +55,18 @@
 					<span class="pre float" id="last">未取得</span>
 					<i class="clear"></i>
 				</p>
+				<form action="" name="set">
+					<div>
+						<select name="key">
+							<option disabled selected>入力</option>
+							<option>時刻補正</option>
+							<option>閏秒 ±</option>
+							<option>閏秒 @</option>
+						</select>:
+						<input name="value"><!--
+						--><input type="submit" value="適用" name="apply">
+					</div>
+				</form>
 				<label>
 					<input type="checkbox" id="ntp">
 					読み込み時に自動的に取得する
@@ -380,6 +392,6 @@
 		</div>
 	</div>
 	
-	<script type="text/javascript" src="script.js?20190407"></script>
+	<script type="text/javascript" src="script.js?20190408"></script>
 </body>
 </html>

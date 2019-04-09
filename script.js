@@ -81,8 +81,15 @@ var jsont; // JSONPコールバック関数公開用
 	
 	var refetch; // #refetch要素 再取得ボタン
 	var diffText, leapText, lastText; // 補正, 閏秒, 最終更新 TextNode
+	
+	var form; var fk; var fv; var fa;
+	var parsed;
+	var invalid;
+	
 	var lis = [];      // 時刻補正ログ li要素[]
 	var logTexts = []; // 時刻補正ログ TextNode[]
+	
+	var unknown = '不明';
 	
 	// 文字列
 	function dstr(d) { // 符号反転
@@ -96,8 +103,71 @@ var jsont; // JSONPコールバック関数公開用
 	function result() {
 		diffText.data = dstr(diff);
 	}
+	function lresult() {
+		var str = (step == null ? unknown :
+			(step > 0 ? '+' : '') + step / 1000) + ' @ ';
+		if (leap == null) {
+			str += unknown;
+		} else {
+			date.setTime(leap);
+			str += date.toLocaleString();
+		}
+		leapText.data = str;
+	}
 	function log(i, str) {
 		logTexts[i].data = str;
+	}
+	
+	function validate() {
+		invalid = true;
+		var value = fv.value;
+		if (value) {
+			switch (fk.selectedIndex) {
+				case 1:
+				parsed = parseInt(value, 10);
+				invalid = isNaN(parsed);
+				break;
+				
+				case 2:
+				parsed = parseInt(value, 10);
+				invalid = !(-2 <= parsed && parsed <= +2);
+				break;
+				
+				case 3:
+				parsed = Date.parse(value);
+				invalid = isNaN(parsed);
+				break;
+			}
+		}
+		fa.disabled = invalid;
+	}
+	
+	function onsubmit() {
+		if (invalid) { return false; }
+		fv.blur();
+		
+		switch (fk.selectedIndex) {
+			case 1:
+			diff = -parsed;
+			result();
+			break;
+			
+			case 2:
+			step = parsed * 1000;
+			lresult();
+			break;
+			
+			case 3:
+			leap = parsed - parsed % 60000;
+			lresult();
+			break;
+		}
+		testleap(new Date() - diff);
+		pcode = null;
+		
+		this.reset();
+		validate();
+		return false;
 	}
 	
 	function toggle() {
@@ -333,16 +403,19 @@ var jsont; // JSONPコールバック関数公開用
 		pref.className = altKey ? 'alt' : '';
 	}
 	
-	function onkeydown(event) {
-		var altKey = event.altKey;
+	function onkeydown(e) {
+		var ie = e == null;
+		if (ie) { e = event; }
+		
+		var altKey = e.altKey;
 		alt(altKey);
 		
-		var key = String.fromCharCode(event.keyCode | 32);
+		var key = String.fromCharCode(e.keyCode | 32);
 		if (key in inputs) {
 			var input = inputs[key];
 			if (input.disabled) return;
 			
-			var target = event.target;
+			var target = ie ? e.srcElement : e.target;
 			var tagName = target.tagName;
 			var not = !(
 				tagName == selectTag ||
@@ -358,8 +431,9 @@ var jsont; // JSONPコールバック関数公開用
 			}
 		}
 	}
-	function onkeyup(event) {
-		alt(event.altKey);
+	function onkeyup(e) {
+		if (e == null) { e = event; }
+		alt(e.altKey);
 	}
 	
 	// 詳細設定
@@ -744,6 +818,13 @@ var jsont; // JSONPコールバック関数公開用
 	function half(n) { // n/2を0側へ丸める
 		return (n - n % 2) / 2;
 	}
+	function testleap(time) {
+		leaping = step && leap > time;
+		stepped = false;
+		if (leaping) {
+			leaps = step < 0 ? leap + step : leap;
+		}
+	}
 	
 	// コールバック関数
 	function jsonp(json) {
@@ -770,12 +851,7 @@ var jsont; // JSONPコールバック関数公開用
 		
 		leap = json.next * 1000;
 		step = json.step * 1000;
-		
-		leaping = leap > serverTime;
-		stepped = false;
-		if (leaping) {
-			leaps = step < 0 ? leap + step : leap;
-		}
+		testleap(serverTime);
 		
 		result();
 		log(i, rstr(half(l + u), u - l) + ' ⇒ ' +
@@ -817,12 +893,14 @@ var jsont; // JSONPコールバック関数公開用
 				date.setTime(getNow());
 				lastText.data = date.toLocaleString();
 				
-				date.setTime(leap);
-				leapText.data = (step > 0 ? '+' : '') +
-					step / 1000 + ' @ ' + date.toLocaleString();
-				
+				lresult();
 				pcode = null;
 			}
+			
+			form.className = '';
+			fk.disabled = false;
+			fv.disabled = false;
+			validate();
 			
 			refetch.disabled = false;
 			refetch.value = '再取得';
@@ -839,6 +917,12 @@ var jsont; // JSONPコールバック関数公開用
 		// 表示更新
 		refetch.disabled = true;
 		refetch.value = '取得中';
+		
+		form.className = dClass;
+		fk.disabled = true;
+		fv.disabled = true;
+		fa.disabled = true;
+		
 		for (var j = 1; j < length; j++) {
 			log(j, '保留');
 		}
@@ -1170,7 +1254,7 @@ var jsont; // JSONPコールバック関数公開用
 		var y = date.getFullYear();
 		var e = date.getDay();
 		
-		var ls = leap > next &&
+		var ls = step && leap > next &&
 			leap <= date.setMonth(date.getMonth() + 1);
 		date.setTime(epoch);
 		var d = -~((next - date.setFullYear(y)) / 86400000);
@@ -1298,8 +1382,11 @@ var jsont; // JSONPコールバック関数公開用
 		}
 		tick();
 		
+		if ($.addEventListener != null) {
+			$.addEventListener(
+				visibilitychange, onvisibilitychange, false);
+		}
 		onvisibilitychange.call($); // 表示更新開始
-		$.addEventListener(visibilitychange, onvisibilitychange);
 	}
 	
 	$.onreadystatechange = function () {
@@ -1330,6 +1417,20 @@ var jsont; // JSONPコールバック関数公開用
 		
 		leapText = $.getElementById('leap').lastChild;
 		lastText = $.getElementById('last').firstChild;
+		
+		// フォーム
+		form = $.forms['set'];
+		fk = form['key'];
+		fv = form['value'];
+		fa = form['apply'];
+		
+		fk.onchange = validate;
+		fv.onchange = validate;
+		fv.onkeyup  = validate;
+		fv.oninput  = validate;
+		validate();
+		
+		form.onsubmit = onsubmit;
 		
 		// 時刻補正ログ
 		var log = $.getElementById('log');
