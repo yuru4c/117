@@ -45,9 +45,6 @@ tt, .monospace {
 	text-align: left;
 	vertical-align: text-top;
 }
-.size {
-	box-sizing: border-box;
-}
 .float {
 	float: right;
 }
@@ -55,15 +52,24 @@ tt, .monospace {
 	display: block;
 	clear: right;
 }
-
-.sans {
-	font-family: sans-serif;
+.size, .timecode span {
+	-webkit-box-sizing: border-box;
+	   -moz-box-sizing: border-box;
+	        box-sizing: border-box;
 }
+
 .em {
 	font-style: oblique;
 }
 .pre {
+	font-family: sans-serif;
 	white-space: pre;
+}
+.nowrap {
+	white-space: nowrap;
+}
+.wrap {
+	white-space: normal;
 }
 .center {
 	text-align: center;
@@ -95,26 +101,31 @@ tt, .monospace {
 	text-decoration: underline;
 }
 
-.ntp {
-	white-space: nowrap;
+.header, .footer {
+	margin: 0.625em 0;
+	line-height: 2;
 }
+.diff, .ntp, .jjy {
+	line-height: normal;
+}
+
 .ntp p {
 	line-height: 1.2;
-	white-space: normal;
 }
 .ntp p, .ntp form {
 	margin: 0.5em 0;
 	text-indent: 1em;
 }
-.ntp div label {
+.ntp label {
 	display: block;
 	margin-left: 1em;
 }
-
-.container, .container fieldset {
-	margin-top: 0.625em;
+.ntp ol {
+	line-height: 1.5;
 }
+
 .container fieldset {
+	margin-top: 0.625em;
 	white-space: nowrap;
 }
 .container label, .selects span {
@@ -155,16 +166,13 @@ tt, .monospace {
 }
 .hidden {
 	display: inline-block;
-	width: 0;
+	margin-right: -1px;
+	width: 1px;
 	visibility: hidden;
 }
 
-.footer {
-	margin: 0.625em 0;
-	line-height: 2;
-}
-.footer label {
-	line-height: normal;
+.jjy span {
+	display: inline-block;
 }
 .buttons {
 	margin-left: 1em;
@@ -174,7 +182,7 @@ tt, .monospace {
 }
 
 .timecode {
-	margin: 1em 0;
+	margin: 1em 0 2em;
 }
 .timecode > * {
 	padding: 0 1px;
@@ -201,12 +209,12 @@ tt, .monospace {
 	bottom: -1em;
 	margin-left: -1px;
 	border-left: solid 2px;
+	z-index: 1;
 }
 
 .timecode span {
 	position: relative;
 	display: inline-block;
-	box-sizing: border-box;
 	height: 100%;
 	width: 1em;
 	opacity: .5;

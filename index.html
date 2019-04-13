@@ -6,9 +6,9 @@
 	<meta name="viewport" content="width=device-width, initial-scale=1">
 	<meta name="format-detection" content="date=no">
 	
-	<title>オンライン 117 ver. 20190408</title>
+	<title>オンライン 117 ver. 20190413</title>
 	
-	<link rel="stylesheet" href="style.css?20190408">
+	<link rel="stylesheet" href="style.css?20190413">
 </head>
 <body>
 	
@@ -40,18 +40,20 @@
 	
 	<div class="scroll align center pref">
 	<div id="pref">
-		<div class="ntp">
-			<span>
+		<div class="header">
+			<span class="diff">
 				時刻補正:
 				<input type="button" value=" 取得 " id="refetch">
+				<label>
+					<span class="monospace" id="diff">0<!> ms</span>
+					<input type="checkbox" name="more">詳細
+				</label>
 			</span>
-			<label>
-				<span class="monospace" id="diff">0<!> ms</span>
-				<input type="checkbox" name="more">詳細
-			</label>
-			<div>
-				<p class="sans">
-					<span class="pre" id="leap">閏秒: <!>不明</span>
+			<div class="nowrap ntp">
+				<p class="wrap">
+					<span class="nowrap">
+						閏秒: <span class="pre" id="leap">不明</span>
+					</span>
 					<span class="pre float" id="last">未取得</span>
 					<i class="clear"></i>
 				</p>
@@ -365,17 +367,19 @@
 			</div>
 		</div>
 		<div class="footer">
-			<label>
-				<input type="checkbox" id="jjy">
-				標準電波
-			</label>
-			<span id="frequencies">
+			<span class="jjy">
 				<label>
-					<input type="radio" name="frequency" value="40" checked>40kHz
+					<input type="checkbox" id="jjy">
+					標準電波
 				</label>
-				<label>
-					<input type="radio" name="frequency" value="60">60kHz
-				</label>
+				<span id="frequencies">
+					<label>
+						<input type="radio" name="frequency" value="40" checked>40kHz
+					</label>
+					<label>
+						<input type="radio" name="frequency" value="60">60kHz
+					</label>
+				</span>
 			</span>
 			<span class="float buttons">
 				<input type="button" value="ヘルプ" id="help">
@@ -392,6 +396,6 @@
 		</div>
 	</div>
 	
-	<script type="text/javascript" src="script.js?20190408"></script>
+	<script type="text/javascript" src="script.js?20190413"></script>
 </body>
 </html>

@@ -75,6 +75,16 @@ var jsont; // JSONPコールバック関数公開用
 	var langRe = /^ja/i;
 	var synthesis = window.speechSynthesis;
 	
+	function l(handle) {
+		return function (e) {
+			if (e == null) { e = event; }
+			if (!('target' in e)) {
+				e.target = e.srcElement;
+			}
+			return handle.call(this, e);
+		};
+	}
+	
 	// 設定画面
 	
 	var pref; // #pref要素
@@ -171,13 +181,17 @@ var jsont; // JSONPコールバック関数公開用
 	}
 	
 	function toggle() {
-		var node = this.parentNode.nextSibling;
-		while (node != null) {
-			if (node.nodeType == 1) {
-				node.style.display = this.checked ? '' : 'none';
-				break;
+		var parent = this.parentNode;
+		while (parent != null) {
+			var next = parent.nextSibling;
+			while (next != null) {
+				if (next.nodeType == 1) {
+					next.style.display = this.checked ? '' : 'none';
+					return;
+				}
+				next = next.nextSibling;
 			}
-			node = node.nextSibling;
+			parent = parent.parentNode;
 		}
 	}
 	
@@ -328,6 +342,7 @@ var jsont; // JSONPコールバック関数公開用
 				resume();
 			}
 			break;
+			
 			case 'v':
 			if (!this.checked) {
 				speak();
@@ -403,19 +418,16 @@ var jsont; // JSONPコールバック関数公開用
 		pref.className = altKey ? 'alt' : '';
 	}
 	
-	function onkeydown(e) {
-		var ie = e == null;
-		if (ie) { e = event; }
-		
-		var altKey = e.altKey;
+	var onkeydown = l(function (event) {
+		var altKey = event.altKey;
 		alt(altKey);
 		
-		var key = String.fromCharCode(e.keyCode | 32);
+		var key = String.fromCharCode(event.keyCode ^ 32);
 		if (key in inputs) {
 			var input = inputs[key];
 			if (input.disabled) return;
 			
-			var target = ie ? e.srcElement : e.target;
+			var target = event.target;
 			var tagName = target.tagName;
 			var not = !(
 				tagName == selectTag ||
@@ -430,11 +442,10 @@ var jsont; // JSONPコールバック関数公開用
 				}
 			}
 		}
-	}
-	function onkeyup(e) {
-		if (e == null) { e = event; }
-		alt(e.altKey);
-	}
+	});
+	var onkeyup = l(function (event) {
+		alt(event.altKey);
+	});
 	
 	// 詳細設定
 	
@@ -515,14 +526,14 @@ var jsont; // JSONPコールバック関数公開用
 		return count(str) < digits ? num.toFixed(digits) : str;
 	}
 	
-	function handler(event) {
+	var handler = l(function (event) {
 		var param = binds[this.id]
 			.handle(event.target, event.type == 'change');
 		if (param != null) {
 			params[this.id] = param;
 			dirty();
 		}
-	}
+	});
 	
 	function Bind(id) {
 		var param = params[id];
@@ -553,12 +564,12 @@ var jsont; // JSONPコールバック関数公開用
 	}
 	var bind = Bind.prototype;
 	
-	bind.handle = function (target, done) {
+	bind.handle = function (target, change) {
 		var value = parseFloat(target.value);
 		switch (target.type) {
 			case 'range':
 			this.input.value = value.toFixed(this.digits);
-			return done ? value : null;
+			return change ? value : null;
 			
 			default:
 			if (isNaN(value)) {
@@ -567,7 +578,7 @@ var jsont; // JSONPコールバック関数公開用
 				if (value < this.min) { value = this.min; }
 				if (value > this.max) { value = this.max; }
 			}
-			if (done) {
+			if (change) {
 				this.input.value = toFixed(value, this.digits);
 			}
 			this.range.value = value;
@@ -1415,7 +1426,7 @@ var jsont; // JSONPコールバック関数公開用
 		refetch.onclick = start;
 		diffText = $.getElementById('diff').firstChild;
 		
-		leapText = $.getElementById('leap').lastChild;
+		leapText = $.getElementById('leap').firstChild;
 		lastText = $.getElementById('last').firstChild;
 		
 		// フォーム
