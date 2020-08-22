@@ -873,11 +873,18 @@ var jsont; // JSONPコールバック関数公開用
 	
 	function send() { // JSONPリクエスト
 		script = $.createElement('script');
+		script.onerror = error;
 		script.type = 'text/javascript';
 		var src = srcs[i];
 		lastIt = new Date() / 1000; // 発信時刻 (秒)
 		script.src = src + lastIt;
 		head.appendChild(script); // 直ちに送信
+	}
+	
+	function error() {
+		window.clearTimeout(timeoutId);
+		log(i, '× エラー');
+		next();
 	}
 	
 	function timeout() { // タイムアウト
