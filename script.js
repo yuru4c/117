@@ -44,9 +44,9 @@ var jsont; // JSONPコールバック関数公開用
 	
 	// サーバリスト
 	var ids = [
+		'ntp-a4.nict.go.jp',
 		'ntp-a1.nict.go.jp',
-		'ntp-b1.nict.go.jp',
-		'ntp-a4.nict.go.jp'
+		'ntp-b1.nict.go.jp'
 	];
 	var path = '/cgi-bin/jsont?';
 	
@@ -889,6 +889,7 @@ var jsont; // JSONPコールバック関数公開用
 	
 	function timeout() { // タイムアウト
 		lastIt = null;
+		script.onerror = null;
 		head.removeChild(script);
 		log(i, '× タイムアウト');
 		next();
